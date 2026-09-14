@@ -553,10 +553,10 @@ body.is-join .counter{opacity:0;pointer-events:none}
 /* --- 首页 SCROLL 提示的样式已在上方 .hint 统一处理 --- */
 
 /* ==========================================================================
-   四块职能模块（CTF / SRC / SECURITY / SIGNAL）
+   五块学习模块（CTF / SRC / SECURITY / AI + DEV / SIGNAL）
    --------------------------------------------------------------------------
    原来是 2x2 方框卡片，像 Dashboard。
-   改成四条通栏 editorial 模块：更大、更少、更留白。
+   改成通栏 editorial 模块：清晰、克制、保留留白。
    ========================================================================== */
 .beat--wide{max-width:1060px}
 
@@ -566,13 +566,13 @@ body.is-join .counter{opacity:0;pointer-events:none}
   border-top:1px solid var(--line);
   text-align:left;
 }
-/* --- FIELD：四条通栏模块必须压进一屏（实测未压缩时 1067px > 900px 视口）--- */
+/* --- FIELD：五条通栏模块压进桌面一屏；移动端仍使用自然纵向滚动。--- */
 #whatwedo .kicker{margin-bottom:12px}
 #whatwedo .display{font-size:clamp(36px,4.6vw,66px);line-height:.88}
 #whatwedo .gates{margin-top:22px}
-#whatwedo .gate{padding:clamp(13px,1.6vw,21px) 4px}
-#whatwedo .gate-title{font-size:clamp(24px,2.7vw,40px)}
-#whatwedo .gate-body{font-size:13px;line-height:1.65}
+#whatwedo .gate{padding:clamp(10px,1.2vw,16px) 4px}
+#whatwedo .gate-title{font-size:clamp(22px,2.4vw,36px)}
+#whatwedo .gate-body{font-size:12.5px;line-height:1.55}
 #whatwedo .gate-foot{margin-top:8px}
 #whatwedo .legal{margin-top:20px;font-size:12px}
 
