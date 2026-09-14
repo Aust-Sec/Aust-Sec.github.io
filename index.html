@@ -18,8 +18,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
 
-<link rel="icon" href="./assets/img/logo.png" />
-<link rel="apple-touch-icon" href="./assets/img/logo.png" />
+<link rel="icon" type="image/svg+xml" href="./assets/img/logo.svg" />
+<link rel="apple-touch-icon" href="./assets/img/logo.svg" />
 <link rel="stylesheet" href="./assets/css/style.css" />
 </head>
 <body>
@@ -43,7 +43,7 @@
   <!-- ---------- 四角 UI ---------- -->
   <header class="corner corner--tl">
     <a class="brand" href="#top" data-target="#top">
-      <img class="brand-mark" src="./assets/img/logo.png" alt="AUSTSec 会徽" width="512" height="514" />
+      <img class="brand-mark" src="./assets/img/logo.svg" alt="AUSTSec 会徽" width="64" height="64" />
       <span class="brand-text">AUST<span>SEC</span></span>
     </a>
   </header>
@@ -71,12 +71,12 @@
   <nav class="rail" id="rail" aria-label="页面进度">
     <div class="rail-track"><div class="rail-progress" id="railProgress"></div></div>
     <ul class="rail-marks" id="railMarks">
-      <li><button class="mark is-active" data-target="#top"      aria-label="INDEX 首页"><span class="mark-line"></span><span class="mark-copy"><em>INDEX</em>首页</span></button></li>
-      <li><button class="mark"           data-target="#about"    aria-label="ABOUT 关于"><span class="mark-line"></span><span class="mark-copy"><em>ABOUT</em>关于</span></button></li>
-      <li><button class="mark"           data-target="#whatwedo" aria-label="FIELD 技术领域"><span class="mark-line"></span><span class="mark-copy"><em>FIELD</em>技术领域</span></button></li>
-      <li><button class="mark"           data-target="#start"    aria-label="START 从零开始"><span class="mark-line"></span><span class="mark-copy"><em>START</em>从零开始</span></button></li>
-      <li><button class="mark"           data-target="#signal"   aria-label="SIGNAL 资源"><span class="mark-line"></span><span class="mark-copy"><em>SIGNAL</em>资源情报</span></button></li>
-      <li><button class="mark"           data-target="#join"     aria-label="JOIN 加入"><span class="mark-line"></span><span class="mark-copy"><em>JOIN</em>加入我们</span></button></li>
+      <li><button class="mark is-active" data-target="#top"      aria-label="INDEX 首页"><span class="mark-line"></span><span class="mark-copy"><em>INDEX</em></span></button></li>
+      <li><button class="mark"           data-target="#about"    aria-label="ABOUT 关于"><span class="mark-line"></span><span class="mark-copy"><em>ABOUT</em></span></button></li>
+      <li><button class="mark"           data-target="#whatwedo" aria-label="FIELD 技术领域"><span class="mark-line"></span><span class="mark-copy"><em>FIELD</em></span></button></li>
+      <li><button class="mark"           data-target="#start"    aria-label="START 从零开始"><span class="mark-line"></span><span class="mark-copy"><em>START</em></span></button></li>
+      <li><button class="mark"           data-target="#signal"   aria-label="SIGNAL 资源"><span class="mark-line"></span><span class="mark-copy"><em>SIGNAL</em></span></button></li>
+      <li><button class="mark"           data-target="#join"     aria-label="JOIN 加入"><span class="mark-line"></span><span class="mark-copy"><em>JOIN</em></span></button></li>
     </ul>
   </nav>
 
@@ -256,12 +256,12 @@
 <div class="overlay" id="overlay" hidden>
   <button class="overlay-close" id="overlayClose" aria-label="关闭目录">关闭</button>
   <nav class="overlay-nav">
-    <a href="#top"      data-target="#top"><span class="o-no">00</span><em>INDEX</em>首页</a>
-    <a href="#about"    data-target="#about"><span class="o-no">01</span><em>ABOUT</em>关于我们</a>
-    <a href="#whatwedo" data-target="#whatwedo"><span class="o-no">02</span><em>FIELD</em>技术领域</a>
-    <a href="#start"    data-target="#start"><span class="o-no">03</span><em>START</em>从零开始</a>
-    <a href="#signal"   data-target="#signal"><span class="o-no">04</span><em>SIGNAL</em>资源情报</a>
-    <a href="#join"     data-target="#join"><span class="o-no">05</span><em>JOIN</em>加入我们</a>
+    <a href="#top"      data-target="#top" aria-label="INDEX 首页"><span class="o-no">00</span><em>INDEX</em></a>
+    <a href="#about"    data-target="#about" aria-label="ABOUT 关于我们"><span class="o-no">01</span><em>ABOUT</em></a>
+    <a href="#whatwedo" data-target="#whatwedo" aria-label="FIELD 技术领域"><span class="o-no">02</span><em>FIELD</em></a>
+    <a href="#start"    data-target="#start" aria-label="START 从零开始"><span class="o-no">03</span><em>START</em></a>
+    <a href="#signal"   data-target="#signal" aria-label="SIGNAL 资源情报"><span class="o-no">04</span><em>SIGNAL</em></a>
+    <a href="#join"     data-target="#join" aria-label="JOIN 加入我们"><span class="o-no">05</span><em>JOIN</em></a>
   </nav>
   <div class="overlay-foot">
     <p class="motto">HACK THE LAB. NOT THE LAW.</p>

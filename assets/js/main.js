@@ -2,9 +2,11 @@
    AUSTSec · 主脚本
    --------------------------------------------------------------------------
    1. 背景三层结构（远景 dust / 主体 topology core / 近景 fragment）+ 视差
-   2. 主体"场景状态"：每屏不同的形态与位置，形成 motion narrative
-   3. 逐字揭示只给大标题；正文整行出现（克制）
-   4. 分屏叙事 / 自绘光标 / 遥测 HUD / 二维码弹层
+   2. 主体"姿态系统"：始终保持完整球体，只做轻微拉伸、扭转与呼吸。
+      页面变化时保留同一张拓扑网络，不再突变成簇、螺旋或雷达盘。
+   3. 节点 currentPosition → lerp → targetPosition，慢速过渡到新姿态。
+   4. 分屏叙事（桌面） / 原生滚动（移动端）双布局，共用同一套视觉系统。
+   5. 逐字揭示 / 自绘光标 / 遥测 HUD / 二维码弹层
    零依赖、无构建，直接丢 GitHub Pages 就能跑。
    ========================================================================== */
 (function () {
@@ -18,11 +20,6 @@
 
   /* ----------------------------------------------------------------------
      dt 归一化
-     ----------------------------------------------------------------------
-     所有"每帧固定比例"的插值/衰减都必须换算成按时间算，
-     否则 60Hz 和 80Hz 用户看到的运动速度不一样：
-       · 插值更快 / morph 更快 / 碎片更快 / 拖尾衰减更快
-     基准取 60fps（16.667ms）。
      ---------------------------------------------------------------------- */
   var BASE = 1000 / 60;
   function dtAlpha(alpha60, dt) {
@@ -46,7 +43,6 @@
     texts.forEach(function (node) {
       var frag = document.createDocumentFragment();
       Array.from(node.nodeValue).forEach(function (ch) {
-        // 空格原样输出：包进 inline-block 会让连续空白被折叠算法吃掉
         if (ch === ' ' || ch === '\u00a0' || ch === '\t') {
           frag.appendChild(document.createTextNode(ch));
           return;
@@ -66,21 +62,12 @@
     return inners;
   }
 
-  function prepareKinetic(root) {
-    var els = Array.prototype.slice.call(root.querySelectorAll('[data-kinetic]'));
-    var inners = [];
-    els.forEach(function (el) { inners = inners.concat(splitChars(el)); });
-    return inners;
-  }
-
   /* ======================================================================
-     2. 背景：三层 + 场景状态
+     2. 背景：三层 + 连续姿态系统
      ----------------------------------------------------------------------
-     原来的问题是"所有东西都在同一个深度层"，所以像 3D wireframe globe
-     而不是一个空间。现在拆成：
-       远景 dust      —— 移动极少，只做视差 2px
-       主体 core      —— 巨大拓扑球，按屏切换形态，视差 8px
-       近景 fragment  —— 偶尔掠过镜头的碎片，视差 20px
+     远景 dust      —— 只做 2px 视差
+     主体 core      —— 同一张球面拓扑，按屏轻微调整姿态，视差 8px
+     近景 fragment  —— 偶尔掠过的碎片，视差 20px
      ====================================================================== */
   function initNetwork() {
     var cvs = document.getElementById('net');
@@ -97,15 +84,27 @@
     var COUNT = 300;
     var DUST_N = 90;
     var FRAG_N = 16;
-    var LINK_DIST = 0.40;
     var FOCAL = 2.6;
 
-    // 场景状态（由 CSS 变量驱动，见 style.css 的 --orb-*）
-    var orb = { x: 70, y: 52, r: 0.40, o: 1 };
-    var orbT = { x: 70, y: 52, r: 0.40, o: 1 };
-    var mode = 'sphere';        // sphere | scatter | path | radar
-    var modeMix = { scatter: 0, path: 0, radar: 0 };
-    var modeMixT = { scatter: 0, path: 0, radar: 0 };
+    /* ---- 姿态定义 ----
+       名称沿用原场景键，避免改动导航逻辑；实际轮廓都保持为同一个球体。
+       页面变化只改变球体的姿态，而不是把它变成另一件东西。 */
+    var TARGET_SHAPES = ['sphere', 'ellipsoid', 'clusters', 'helix', 'radar'];
+    var targets = { sphere: [], ellipsoid: [], clusters: [], helix: [], radar: [] };
+    var edges = [];
+
+    var CLUSTERS = 4;
+
+    /* 场景状态（由分屏/滚动逻辑驱动） */
+    var orb = { x: 50, y: 52, r: 0.40, o: 1 };
+    var orbT = { x: 50, y: 52, r: 0.40, o: 1 };
+    var mode = 'sphere';
+    var shapePhase = 0;
+
+    /* ---------- 每个点属于哪个簇 ---------- */
+    function clusterOf(i) {
+      return Math.min(CLUSTERS - 1, Math.floor(i / COUNT * CLUSTERS));
+    }
 
     /* ---------- 布点 ---------- */
     function build() {
@@ -115,12 +114,18 @@
         var y = 1 - (i / (COUNT - 1)) * 2;
         var r = Math.sqrt(Math.max(0, 1 - y * y));
         var th = golden * i;
+        var bx = Math.cos(th) * r, by = y, bz = Math.sin(th) * r;
         core.push({
-          bx: Math.cos(th) * r, by: y, bz: Math.sin(th) * r,   // 球面基准
+          id: i,
+          bx: bx, by: by, bz: bz,         // 球面基准
+          x: bx, y: by, z: bz,            // 当前动画位置（初始 = sphere）
           sx: 0, sy: 0, scale: 1, depth: 0,
-          hot: i % 41 === 0                                     // 稀有亮点
+          hot: i % 41 === 0,
+          cluster: clusterOf(i)
         });
       }
+      computeTargets();
+      computeEdges();
       dust = [];
       for (var d = 0; d < DUST_N; d++) {
         dust.push({
@@ -146,14 +151,58 @@
       };
     }
 
-    /* ---------- 场景目标 ----------
-       单向数据流：
-         applyScene() → orbT（目标，只由分屏逻辑写）
-         applyOrb()   → orb（平滑值）→ 写回 --orb-x/--orb-y（只给光环用）
-       绝对不能让 orbT 反过来读 --orb-*，否则目标会被自己的平滑输出覆盖，
-       球会卡在原地看着不动（上一版就是这个自反馈 bug）。 */
+    /* ---------- 一次性计算所有姿态 ---------- */
+    function computeTargets() {
+      for (var i = 0; i < COUNT; i++) {
+        var p = core[i];
+        targets.sphere[i] = { x: p.bx, y: p.by, z: p.bz };
+        // ABOUT：轻微横向展开。
+        targets.ellipsoid[i] = { x: p.bx * 1.045, y: p.by * 0.985, z: p.bz * 1.02 };
+
+        // FIELD：沿纬度产生很浅的起伏，外轮廓仍然完整。
+        var bloom = 1 + Math.sin(p.by * Math.PI * 2.5) * 0.026;
+        targets.clusters[i] = { x: p.bx * bloom, y: p.by * 0.995, z: p.bz * bloom };
+
+        // START：不同纬度轻微扭转，形成流动感，而不是收成一根螺旋。
+        var twist = p.by * 0.18;
+        var ct = Math.cos(twist), st = Math.sin(twist);
+        targets.helix[i] = {
+          x: p.bx * ct - p.bz * st,
+          y: p.by,
+          z: p.bx * st + p.bz * ct
+        };
+
+        // SIGNAL：略微纵向聚焦，保持球体与网络的连续性。
+        targets.radar[i] = { x: p.bx * 0.975, y: p.by * 1.035, z: p.bz * 1.01 };
+      }
+    }
+
+    /* ---------- 只计算一次拓扑；换页时连线不重新洗牌 ---------- */
+    function computeEdges() {
+      edges = [];
+      var LINK_DIST = 0.40;
+      var LD2 = LINK_DIST * LINK_DIST;
+      for (var i = 0; i < COUNT; i++) {
+        var a = core[i];
+        for (var j = i + 1; j < COUNT; j++) {
+          var b = core[j];
+          var dx = a.bx - b.bx, dy = a.by - b.by, dz = a.bz - b.bz;
+          var d2 = dx * dx + dy * dy + dz * dz;
+          if (d2 <= LD2) {
+            edges.push([i, j, 1 - Math.sqrt(d2) / LINK_DIST]);
+          }
+        }
+      }
+    }
+
+    /* ---------- 场景目标（单向数据流） ---------- */
     function setOrbTarget(x, y, r, o) {
       orbT.x = x; orbT.y = y; orbT.r = r; orbT.o = o;
+    }
+
+    function setMode(m) {
+      if (m === 'gather') m = 'sphere';
+      mode = TARGET_SHAPES.indexOf(m) >= 0 ? m : 'sphere';
     }
 
     /* ---------- 尺寸 ---------- */
@@ -170,7 +219,6 @@
     }
 
     function applyOrb(instant, dt) {
-      // 插值系数按 dt 换算 —— 固定 0.05 在不同刷新率下速度不同
       var t = instant ? 1 : dtAlpha(0.055, dt);
       orb.x = lerp(orb.x, orbT.x, t);
       orb.y = lerp(orb.y, orbT.y, t);
@@ -179,12 +227,9 @@
 
       cx = W * (orb.x / 100);
       cy = H * (orb.y / 100);
-      // 主体要大：允许超出屏幕，被裁切才显得有压迫感
       R = Math.min(W, H) * orb.r;
-      if (W < 760) R = Math.min(R, H * 0.34);
+      if (W < 760) R = Math.min(R, H * 0.40);
 
-      // 光源跟随球：把平滑后的位置写回 CSS 变量。
-      // 不能在 CSS 里做 transition —— 渐变不可插值，transition 是无效的。
       orbVarTick = (orbVarTick + 1) % 8;
       if (orbVarTick === 0) {
         var rs = document.documentElement.style;
@@ -194,64 +239,36 @@
     }
     var orbVarTick = 0;
 
-    function setMode(m) {
-      mode = m;
-      // JOIN 用 gather：从上一屏的散开状态极缓慢地回收成完整 Core。
-      // 不是直接切 sphere —— 要看得见"前面的东西重新聚合了"。
-      modeMixT = {
-        scatter: m === 'scatter' ? 1 : 0,
-        path: m === 'path' ? 1 : 0,
-        radar: m === 'radar' ? 1 : 0
-      };
-      gather = (m === 'gather');
-    }
-    var gather = false;
-
-    /* ---------- 投影 ---------- */
-    function project(t, dt) {
-      // JOIN 进入时把 morph 速度放慢 4 倍，聚合成完整 Core 要 2~2.5 秒
-      var morph = gather ? 0.0115 : 0.05;
-      var aMode = dtAlpha(morph, dt);
-      modeMix.scatter = lerp(modeMix.scatter, modeMixT.scatter, aMode);
-      modeMix.path = lerp(modeMix.path, modeMixT.path, aMode);
-      modeMix.radar = lerp(modeMix.radar, modeMixT.radar, aMode);
-
+    /* ---------- 投影 + 姿态插值 ---------- */
+    function project(dt) {
+      var aMode = dtAlpha(0.024, dt);
       var cosY = Math.cos(yaw), sinY = Math.sin(yaw);
       var cosX = Math.cos(pitch), sinX = Math.sin(pitch);
-      var sc = modeMix.scatter, pa = modeMix.path, ra = modeMix.radar;
+      var tgt = targets[mode] || targets.sphere;
+      shapePhase += 0.00042 * dt;
+      var breath = 1 + Math.sin(shapePhase) * 0.010;
 
       for (var i = 0; i < COUNT; i++) {
         var p = core[i];
-        var bx = p.bx, by = p.by, bz = p.bz;
+        var tt = tgt[i];
+        p.x = lerp(p.x, tt.x, aMode);
+        p.y = lerp(p.y, tt.y, aMode);
+        p.z = lerp(p.z, tt.z, aMode);
 
-        // scatter：向外炸开一点
-        if (sc > 0.001) {
-          var k = 1 + sc * (0.55 + (i % 7) * 0.05);
-          bx *= k; by *= k; bz *= k;
-        }
-        // path：向一条斜向脊线收拢，形成"路径/轨迹"
-        if (pa > 0.001) {
-          var u = i / COUNT;
-          var tx = -0.55 + u * 1.15;
-          var ty = 0.62 - u * 1.24;
-          var tz = Math.sin(u * Math.PI * 2) * 0.16;
-          bx = lerp(bx, tx, pa); by = lerp(by, ty, pa); bz = lerp(bz, tz, pa);
-        }
-        // radar：压扁成盘状，像雷达扫描面
-        if (ra > 0.001) {
-          var flat = 0.12;
-          by = lerp(by, by * flat, ra);
-        }
+        /* 连续、低幅度的有机呼吸；使用空间坐标而不是节点序号，
+           相邻点会一起运动，不会出现毛刺或“融化”的轮廓。 */
+        var local = breath * (1 + Math.sin(shapePhase * 0.72 + p.y * 2.7 + p.z * 1.3) * 0.0045);
+        var qx = p.x * local, qy = p.y * local, qz = p.z * local;
 
-        var x1 = bx * cosY - bz * sinY;
-        var z1 = bx * sinY + bz * cosY;
-        var y1 = by * cosX - z1 * sinX;
-        var z2 = by * sinX + z1 * cosX;
+        var x1 = qx * cosY - qz * sinY;
+        var z1 = qx * sinY + qz * cosY;
+        var y1 = qy * cosX - z1 * sinX;
+        var z2 = qy * sinX + z1 * cosX;
 
-        var s = FOCAL / (FOCAL + z2);
-        p.sx = cx + x1 * R * s;
-        p.sy = cy + y1 * R * s;
-        p.scale = s;
+        var sc = FOCAL / (FOCAL + z2);
+        p.sx = cx + x1 * R * sc;
+        p.sy = cy + y1 * R * sc;
+        p.scale = sc;
         p.depth = z2;
       }
     }
@@ -260,7 +277,7 @@
     function drawDust(px, py) {
       for (var i = 0; i < DUST_N; i++) {
         var d = dust[i];
-        var x = (d.x * 0.5 + 0.5) * W + px * 0.12;      // 视差最小
+        var x = (d.x * 0.5 + 0.5) * W + px * 0.12;
         var y = (d.y * 0.5 + 0.5) * H + py * 0.12;
         ctx.fillStyle = 'rgba(242,244,245,' + (d.a * 0.5).toFixed(3) + ')';
         ctx.fillRect(x, y, d.s, d.s);
@@ -269,29 +286,21 @@
 
     function drawLinks(alphaMul) {
       ctx.lineWidth = 1;
-      var i, j, a, b, dx, dy, dz, d2, alpha;
-      for (i = 0; i < COUNT; i++) {
-        a = core[i];
-        for (j = i + 1; j < COUNT; j++) {
-          b = core[j];
-          dx = a.bx - b.bx; dy = a.by - b.by; dz = a.bz - b.bz;
-          d2 = dx * dx + dy * dy + dz * dz;
-          if (d2 > LINK_DIST * LINK_DIST) continue;
-          alpha = (1 - Math.sqrt(d2) / LINK_DIST) * 0.20 * alphaMul;
-          alpha *= (1 - (a.depth + b.depth) * 0.25);
-          if (alpha <= 0.010) continue;
-          ctx.strokeStyle = 'rgba(242,244,245,' + alpha.toFixed(3) + ')';
-          ctx.beginPath();
-          ctx.moveTo(a.sx, a.sy);
-          ctx.lineTo(b.sx, b.sy);
-          ctx.stroke();
-        }
+      for (var i = 0; i < edges.length; i++) {
+        var e = edges[i];
+        var a = core[e[0]], b = core[e[1]];
+        var alpha = e[2] * 0.20 * alphaMul;
+        alpha *= (1 - (a.depth + b.depth) * 0.25);
+        if (alpha <= 0.010) continue;
+        ctx.strokeStyle = 'rgba(242,244,245,' + alpha.toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.moveTo(a.sx, a.sy);
+        ctx.lineTo(b.sx, b.sy);
+        ctx.stroke();
       }
     }
 
-    /* ---------- FIELD 联动：hover 模块 → 点亮一组节点 ----------
-       这是"UI 在控制数字空间"而不是"背景放了个 Canvas"的关键一步。
-       强度刻意压得很低：亮起来是"响应"，不能抢正文。 */
+    /* ---------- FIELD 联动：hover 模块 → 点亮对应簇 ---------- */
     var pulseGroup = -1;      // -1 无；0..3 对应 CTF / SRC / SECURITY / SIGNAL
     var pulseAmt = 0, pulseAmtT = 0;
 
@@ -305,8 +314,7 @@
         var size = (0.75 + p.scale * 0.95) * (0.6 + depthFade * 0.8);
         var alpha = 0.10 + depthFade * 0.44;
 
-        // 被 hover 命中的那一组：整组提亮 + 长出光晕
-        var inGroup = pulseGroup >= 0 && (i % 4) === pulseGroup;
+        var inGroup = pulseGroup >= 0 && p.cluster === pulseGroup;
         var boost = inGroup ? pulseAmt : 0;
 
         if (p.hot || boost > 0.02) {
@@ -314,7 +322,6 @@
           var rad = 26 + pulse * 12 + boost * 10;
           var gr = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, rad);
           if (boost > 0.02) {
-            // 联动亮度远低于常驻亮点，避免整片"烧起来"
             gr.addColorStop(0, 'rgba(130,233,255,' + (0.20 + pulse * 0.10 + boost * 0.20).toFixed(3) + ')');
             gr.addColorStop(0.35, 'rgba(41,109,255,' + (0.08 + boost * 0.10).toFixed(3) + ')');
           } else {
@@ -342,9 +349,9 @@
       var step = dt / BASE;
       for (var i = 0; i < FRAG_N; i++) {
         var f = frag[i];
-        f.x += f.v * step;                  // 位移按时间算
+        f.x += f.v * step;
         if (f.x > 1.3) frag[i] = spawnFrag(false);
-        var x = (f.x * 0.5 + 0.5) * W + px * 0.5;       // 近乎前景，视差最大
+        var x = (f.x * 0.5 + 0.5) * W + px * 0.5;
         var y = (f.y * 0.5 + 0.5) * H + py * 0.5;
         ctx.strokeStyle = 'rgba(180,235,255,' + f.a.toFixed(3) + ')';
         ctx.lineWidth = 1;
@@ -355,31 +362,28 @@
       }
     }
 
-    /* ---------- 主循环（60fps 自适应） ---------- */
+    /* ---------- 主循环 ---------- */
     var last = 0;
     function frame(now) {
       requestAnimationFrame(frame);
       if (!visible) return;
       var dt = Math.min(48, now - last);
-      if (dt < 12) return;                  // 上限约 80fps，高刷屏不空转
+      if (dt < 12) return;
       last = now;
 
       var t = now;
-      applyOrb(false, dt);          // 注意：主循环里不能调 readOrbVars()
-      // applyOrb 会把平滑后的 orb.x 写回 --orb-x，若这里再读回来当目标，
-      // 就形成自反馈：目标永远追不上自己，球会缓慢爬行且几乎不动。
+      applyOrb(false, dt);
 
       if (!reduceMotion) {
-        yaw += 0.00045 * dt;                       // 已 dt 化
+        yaw += 0.00045 * dt;
         yaw += (yawTarget - yaw) * dtAlpha(0.014, dt);
         pitch += (pitchTarget - pitch) * dtAlpha(0.022, dt);
-        yawTarget *= dtPow(0.985, dt);             // 衰减按时间换算
+        yawTarget *= dtPow(0.985, dt);
         pitchTarget += (-0.20 - pitchTarget) * dtAlpha(0.007, dt);
       }
 
-      project(t, dt);
+      project(dt);
 
-      // 拖尾：半透明底覆盖也按时间算，否则 80fps 衰减更快（更黑）
       ctx.globalCompositeOperation = 'source-over';
       var fade = reduceMotion ? 1 : 1 - dtPow(1 - 0.34, dt);
       ctx.fillStyle = 'rgba(3,5,6,' + (reduceMotion ? 1 : fade).toFixed(4) + ')';
@@ -398,7 +402,7 @@
     window.addEventListener('pointermove', function (e) {
       mouse.x = e.clientX / window.innerWidth;
       mouse.y = e.clientY / window.innerHeight;
-      yawTarget = (mouse.x - 0.5) * 0.55;   // 只设目标，不持续加值
+      yawTarget = (mouse.x - 0.5) * 0.55;
       pitchTarget = -0.20 + (mouse.y - 0.5) * 0.30;
     }, { passive: true });
 
@@ -414,57 +418,61 @@
     resize();
 
     if (reduceMotion) {
-      yaw = 0.7; project(0);
+      yaw = 0.7;
+      project(1000);
       ctx.fillStyle = '#030506'; ctx.fillRect(0, 0, W, H);
-      drawLinks(1); drawCore(0);
+      drawLinks(1); drawCore(0, BASE);
       return;
     }
     requestAnimationFrame(frame);
 
-    // 暴露给分屏逻辑切换场景
     window.__austOrb = {
       setMode: setMode,
       resize: resize,
-      /** 设置场景目标（单向：分屏逻辑 → 目标 → 平滑 → CSS 变量） */
       setTarget: setOrbTarget,
-      /** 悬停 FIELD 模块时点亮对应的一组节点 */
       pulse: function (group) {
         pulseGroup = group;
         pulseAmtT = group >= 0 ? 1 : 0;
       },
-      /** 调试用：查看内部状态 */
       debug: function () {
         return {
           orb: { x: orb.x, y: orb.y, r: orb.r, o: orb.o },
           orbT: { x: orbT.x, y: orbT.y, r: orbT.r, o: orbT.o },
-          mode: mode, gather: gather,
-          cx: cx, cy: cy, R: R, W: W, H: H,
-          varInline: document.documentElement.style.getPropertyValue('--orb-x'),
-          varComputed: getComputedStyle(document.documentElement).getPropertyValue('--orb-x')
+          mode: mode,
+          cx: cx, cy: cy, R: R, W: W, H: H
         };
       }
     };
   }
 
   /* ======================================================================
-     3. 分屏叙事
+     3. 场景定义 + 分屏叙事 / 原生滚动
      ----------------------------------------------------------------------
-     每屏不仅换内容，还切换背景主体的形态与位置 —— motion narrative。
+     桌面：全屏分屏，滚轮 / 触摸 / 方向键 / 刻度翻页。
+     移动端：原生纵向滚动，背景 Canvas 固定，滚动时用 IntersectionObserver
+     切换姿态；同一套视觉系统，两套构图。
      ====================================================================== */
   var SCENES = {
-    //        x%   y%   半径   不透明度  形态
-    // 主体放大后会和左侧文字打架，所以 INDEX 也把球推右一些，
-    // 靠"位置"而不是"压暗"来保证可读性。
-    top:      { x: 78, y: 52, r: 0.30, o: 0.88, mode: 'sphere'  },
-    about:    { x: 94, y: 54, r: 0.29, o: 0.68, mode: 'sphere'  },
-    whatwedo: { x: 86, y: 50, r: 0.31, o: 0.58, mode: 'scatter' },
-    start:    { x: 82, y: 50, r: 0.30, o: 0.56, mode: 'path'    },
-    signal:   { x: 78, y: 50, r: 0.31, o: 0.66, mode: 'radar'   },
-    // JOIN：球回中 + gather —— 前面散开/压扁的东西重新聚合成完整 Core
-    join:     { x: 52, y: 47, r: 0.33, o: 0.82, mode: 'gather'  }
+    //        x%   y%   半径   不透明度  姿态
+    top:      { x: 78, y: 52, r: 0.30, o: 0.88, mode: 'sphere'    },
+    about:    { x: 86, y: 53, r: 0.29, o: 0.70, mode: 'ellipsoid' },
+    whatwedo: { x: 82, y: 51, r: 0.30, o: 0.62, mode: 'clusters'  },
+    start:    { x: 80, y: 50, r: 0.30, o: 0.60, mode: 'helix'     },
+    signal:   { x: 77, y: 50, r: 0.31, o: 0.68, mode: 'radar'     },
+    join:     { x: 68, y: 49, r: 0.32, o: 0.80, mode: 'gather'    }
   };
 
-  // HUD 只在特定场景出现，让它成为"场景语言"而不是全站装饰
+  /* 移动端：保持球体居中略沉，切页只做几像素级漂移。 */
+  var SCENES_MOBILE = {
+    top:      { x: 50, y: 72, r: 0.46, o: 0.78, mode: 'sphere'    },
+    about:    { x: 52, y: 73, r: 0.40, o: 0.44, mode: 'ellipsoid' },
+    whatwedo: { x: 49, y: 72, r: 0.40, o: 0.40, mode: 'clusters'  },
+    start:    { x: 51, y: 73, r: 0.39, o: 0.38, mode: 'helix'     },
+    signal:   { x: 49, y: 72, r: 0.41, o: 0.44, mode: 'radar'     },
+    join:     { x: 50, y: 70, r: 0.42, o: 0.54, mode: 'gather'    }
+  };
+
+  // HUD 只在特定场景出现（桌面）
   var HUD_SCENES = { top: 1, whatwedo: 1, signal: 1 };
 
   function initBeats() {
@@ -475,27 +483,35 @@
     var marks = Array.prototype.slice.call(document.querySelectorAll('.mark'));
     var railProgress = document.getElementById('railProgress');
     var beatNow = document.getElementById('beatNow');
+    var overlay = document.getElementById('overlay');
+    var toggle = document.getElementById('navToggle');
+    var closeBtn = document.getElementById('overlayClose');
     var current = 0, busy = false;
 
-    // 预切字：只有大标题逐字，正文用整行 .rise
+    var mq = window.matchMedia('(max-width: 820px)');
+    var isMobile = mq.matches;
+
+    function sceneFor(id) {
+      var set = isMobile ? SCENES_MOBILE : SCENES;
+      return set[id] || set.top;
+    }
+
+    // 预切字（桌面逐字揭示用；移动端由 CSS 强制全部可见）
     var kineticCache = beats.map(function (b) {
       var heads = Array.prototype.slice.call(b.querySelectorAll('.display'));
       var inners = [];
       heads.forEach(function (h) {
         if (h.dataset.kinetic !== undefined) inners = inners.concat(splitChars(h));
       });
-      // .display 默认都参与逐字，不再依赖 data-kinetic
       return inners;
     });
     var played = beats.map(function () { return false; });
 
     function applyScene(id) {
-      var s = SCENES[id] || SCENES.top;
-      // 直接写目标值（单向），同时把初始值写进 CSS 变量让光环立刻对齐
+      var s = sceneFor(id);
       if (window.__austOrb && window.__austOrb.setTarget) {
         window.__austOrb.setTarget(s.x, s.y, s.r, s.o);
       } else {
-        // 画布还未初始化时，先把值放进 CSS 变量，初始化时会被读到
         root.style.setProperty('--orb-x', String(s.x));
         root.style.setProperty('--orb-y', String(s.y));
         root.style.setProperty('--orb-r', String(s.r));
@@ -510,7 +526,6 @@
       var inners = kineticCache[i];
       if (reduceMotion) { beats[i].classList.add('is-in'); return; }
 
-      // 自适应错峰：字数多时自动压缩，总展开上限 620ms
       var spread = Math.min(0.030 * inners.length, 0.62);
       var stagger = inners.length > 1 ? spread / (inners.length - 1) : 0;
       inners.forEach(function (inner, k) {
@@ -519,43 +534,66 @@
       requestAnimationFrame(function () {
         requestAnimationFrame(function () { beats[i].classList.add('is-in'); });
       });
-      // 正文整行浮现
       Array.prototype.slice.call(beats[i].querySelectorAll('.rise')).forEach(function (el, k) {
         el.style.transitionDelay = (140 + k * 80) + 'ms';
         el.classList.add('is-in');
       });
     }
 
-    function go(i, instant) {
-      i = clamp(i, 0, beats.length - 1);
-      if (i === current && !instant) return;
-
+    function setActive(i) {
       beats.forEach(function (b, k) {
         b.classList.toggle('is-active', k === i);
         b.classList.toggle('is-past', k < i);
       });
       marks.forEach(function (m, k) { m.classList.toggle('is-active', k === i); });
-
       if (beatNow) beatNow.textContent = String(i + 1).padStart(2, '0');
       if (railProgress) {
         railProgress.style.transform = 'scaleY(' + (i / (beats.length - 1)) + ')';
       }
       current = i;
-
       applyScene(beats[i].id);
-      play(i);
-
       document.body.classList.toggle('is-deep', i > 0);
-      // HUD 属于场景语言：只在 INDEX / FIELD / SIGNAL 出现
       document.body.classList.toggle('hud-on', !!HUD_SCENES[beats[i].id]);
+    }
 
+    function go(i, instant) {
+      i = clamp(i, 0, beats.length - 1);
+      if (i === current && !instant) return;
+      setActive(i);
+      play(i);
       if (busy) return;
       busy = true;
       setTimeout(function () { busy = false; }, reduceMotion ? 80 : 950);
     }
 
-    /* --- 输入 --- */
+    function closeOverlay() {
+      if (!overlay) return;
+      overlay.classList.remove('is-open');
+      if (toggle) toggle.setAttribute('aria-expanded', 'false');
+      setTimeout(function () { overlay.hidden = true; }, 450);
+    }
+
+    /* --- 移动端：滚动驱动场景 --- */
+    var observer = null;
+    function setupObserver() {
+      if (observer || !('IntersectionObserver' in window)) return;
+      observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) {
+            var idx = beats.indexOf(en.target);
+            if (idx >= 0) setActive(idx);
+          }
+        });
+      }, { threshold: 0.5, rootMargin: '-12% 0px -12% 0px' });
+      beats.forEach(function (b) { observer.observe(b); });
+    }
+    function teardownObserver() {
+      if (observer) { observer.disconnect(); observer = null; }
+    }
+
+    /* --- 输入（桌面全屏翻页） --- */
     window.addEventListener('wheel', function (e) {
+      if (isMobile) return;
       e.preventDefault();
       if (Math.abs(e.deltaY) < 4 || busy) return;
       go(current + (e.deltaY > 0 ? 1 : -1));
@@ -566,7 +604,7 @@
       touchY = e.touches[0].clientY;
     }, { passive: true });
     window.addEventListener('touchend', function (e) {
-      if (touchY === null) return;
+      if (isMobile || touchY === null) return;
       var dy = touchY - ((e.changedTouches[0] || {}).clientY || 0);
       touchY = null;
       if (Math.abs(dy) < 40) return;
@@ -574,6 +612,7 @@
     }, { passive: true });
 
     window.addEventListener('keydown', function (e) {
+      if (isMobile) return;
       if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
         e.preventDefault(); go(current + 1);
       } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
@@ -582,19 +621,28 @@
       else if (e.key === 'End') { e.preventDefault(); go(beats.length - 1); }
     });
 
+    /* --- 目录 / 导航点击：桌面翻页，移动端滚动到对应区块 --- */
+    function indexOfBeat(sel) {
+      for (var k = 0; k < beats.length; k++) {
+        if ('#' + beats[k].id === sel) return k;
+      }
+      return -1;
+    }
     Array.prototype.slice.call(document.querySelectorAll('[data-target]')).forEach(function (el) {
       el.addEventListener('click', function (e) {
         e.preventDefault();
-        var sel = el.getAttribute('data-target');
-        for (var k = 0; k < beats.length; k++) {
-          if ('#' + beats[k].id === sel) { go(k); break; }
+        var k = indexOfBeat(el.getAttribute('data-target'));
+        if (k < 0) return;
+        if (isMobile) {
+          closeOverlay();
+          beats[k].scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+        } else {
+          go(k);
         }
       });
     });
 
-    /* ---- FIELD 模块 ↔ 背景联动 ----
-       hover 第 N 个模块 → 球上第 N 组节点亮起。
-       这一步让 UI 看起来在"控制"这个数字空间，而不是浮在背景上。 */
+    /* ---- FIELD 模块 ↔ 背景联动（hover 第 N 个模块 → 点亮第 N 个簇） ---- */
     Array.prototype.slice.call(document.querySelectorAll('.gate')).forEach(function (gate, gi) {
       gate.addEventListener('pointerenter', function () {
         if (window.__austOrb) window.__austOrb.pulse(gi % 4);
@@ -605,21 +653,11 @@
     });
 
     /* ---- 目录浮层 ---- */
-    var overlay = document.getElementById('overlay');
-    var toggle = document.getElementById('navToggle');
-    var closeBtn = document.getElementById('overlayClose');
-
     function openOverlay() {
       if (!overlay) return;
       overlay.hidden = false;
       requestAnimationFrame(function () { overlay.classList.add('is-open'); });
       if (toggle) toggle.setAttribute('aria-expanded', 'true');
-    }
-    function closeOverlay() {
-      if (!overlay) return;
-      overlay.classList.remove('is-open');
-      if (toggle) toggle.setAttribute('aria-expanded', 'false');
-      setTimeout(function () { overlay.hidden = true; }, 450);
     }
     if (toggle) toggle.addEventListener('click', function () {
       if (overlay && overlay.hidden) openOverlay(); else closeOverlay();
@@ -629,7 +667,27 @@
       if (e.key === 'Escape') closeOverlay();
     });
 
-    go(0, true);
+    /* --- 布局切换（旋转 / 拉伸窗口跨越 820px 断点） --- */
+    function onMqChange(e) {
+      isMobile = e.matches;
+      if (isMobile) {
+        setupObserver();
+        applyScene(beats[current].id);
+      } else {
+        teardownObserver();
+        go(0, true);
+      }
+    }
+    if (mq.addEventListener) mq.addEventListener('change', onMqChange);
+    else if (mq.addListener) mq.addListener(onMqChange);
+
+    /* --- 启动 --- */
+    if (isMobile) {
+      applyScene(beats[0].id);
+      setupObserver();
+    } else {
+      go(0, true);
+    }
   }
 
   /* ======================================================================
@@ -690,7 +748,7 @@
   }
 
   /* ======================================================================
-     6. 自绘光标：3px 点 + 细环，悬停出现动作标签
+     6. 自绘光标
      ====================================================================== */
   function initCursor() {
     var el = document.getElementById('cursor');
@@ -710,7 +768,6 @@
       shown = false; el.classList.remove('is-visible');
     });
 
-    // 悬停动作标签：不同元素给不同词
     var HOT = [
       ['.gate', 'VIEW'],
       ['.qr', 'SCAN'],
