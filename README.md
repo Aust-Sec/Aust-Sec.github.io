@@ -2,10 +2,15 @@
 
 安徽理工大学网络安全协会官方站点。**纯静态、零依赖、零构建** —— 直接把仓库根目录发布到 GitHub Pages 即可。
 
+**线上地址：<https://austsec.github.io/>**
+
+仓库：<https://github.com/AustSec/AustSec.github.io>
+
 ```
 .
 ├── index.html              # 单页叙事站点（序幕 / 协会 / 方向 / 加入）
 ├── .nojekyll               # 关键：告诉 GitHub Pages 不要跑 Jekyll 处理
+├── deploy.ps1              # 一键部署脚本（init / commit / push）
 ├── assets/
 │   ├── css/style.css       # 全部样式，含设计变量与响应式
 │   └── js/main.js          # 粒子网络 + 逐字动效 + 分屏叙事 + 自绘光标
@@ -34,42 +39,69 @@
 
 ---
 
-## 二、部署到 GitHub Pages
+## 二、部署状态与日常更新
 
-### 方式 A：项目站点（推荐，地址形如 `用户名.github.io/AUSTSec/`）
+### 已经上线了
 
-```bash
-git init
-git add .
-git commit -m "init: AUSTSec 官网"
-git branch -M main
-git remote add origin https://github.com/<你的用户名>/<仓库名>.git
-git push -u origin main
+仓库 `AustSec/AustSec.github.io` 属于**用户/组织站点**（仓库名 = `<组织名>.github.io`），
+GitHub 会**自动**把它发布在域名根路径：
+
+> **<https://austsec.github.io/>**
+
+不需要手动去 Settings → Pages 里开启，也不需要 `gh-pages` 分支。
+推送 `main` 分支后 1～2 分钟自动更新。
+
+### 以后改完怎么发布
+
+**一键脚本**（推荐）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File deploy.ps1
+powershell -ExecutionPolicy Bypass -File deploy.ps1 -Message "调整首页文案"
 ```
 
-然后在仓库页面进入 **Settings → Pages**：
+脚本会依次做：检查仓库 → 校验身份 → `git add -A` → `git commit` → `git push`，
+并在最后打印线上地址。
 
-- **Source** 选 `Deploy from a branch`
-- **Branch** 选 `main`，目录选 `/ (root)`
-- 保存，等 1～2 分钟，访问 `https://<你的用户名>.github.io/<仓库名>/`
+> `deploy.ps1` 刻意写成**纯 ASCII**。Windows PowerShell 5.1 用系统 ANSI 代码页
+> （中文系统是 GBK）读取 `.ps1`，如果脚本里有中文会被解码错乱、导致语法报错。
+> 改这个脚本时请继续保持纯 ASCII。
 
-### 方式 B：用户站点（地址形如 `用户名.github.io`）
+**手动命令**：
 
-仓库名必须叫 `<你的用户名>.github.io`，其余步骤同上。
+```bash
+git add -A
+git commit -m "改了什么"
+git push
+```
 
-### 方式 C：自定义域名
+### 本地实时预览
 
-在 `Settings → Pages → Custom domain` 填域名，并在仓库根目录加一个 `CNAME` 文件，内容就一行域名，例如：
+写代码时不要靠 push 来看效果——本地起个服务，改完刷新即可：
+
+```bash
+python -m http.server 8080
+# 打开 http://127.0.0.1:8080
+```
+
+> **注意**：GitHub Pages 没有「实时预览」和「PR 预览」。
+> 它只发布指定分支，每次改动都必须 `commit` + `push`，再等 1～2 分钟构建。
+> 真正的实时预览只能靠本地服务器。
+
+### 换绑自定义域名（可选）
+
+在 `Settings → Pages → Custom domain` 填域名，仓库根目录加一个 `CNAME` 文件，
+内容就一行域名：
 
 ```
 austsec.example.edu.cn
 ```
 
-再到域名服务商处把 CNAME 记录指向 `<你的用户名>.github.io`。
+再到域名服务商处把 CNAME 记录指向 `austsec.github.io`。
 
 ---
 
-## 二、为什么路径不用改
+## 三、为什么路径不用改
 
 站内所有资源都用了**相对路径**：
 
@@ -78,15 +110,17 @@ austsec.example.edu.cn
 <script src="./assets/js/main.js"></script>
 ```
 
-所以无论部署到 `用户名.github.io/`（根目录）还是 `用户名.github.io/AUSTSec/`（子目录）都能正常加载，**不需要改任何一行代码**。
+所以无论部署在域名根路径（当前情况）还是子目录，都能正常加载。
 
-> 常见坑：如果写成 `/assets/css/style.css`（开头带斜杠），项目站点会 404 —— 因为它会被解析成 `用户名.github.io/assets/...`，而不是 `用户名.github.io/AUSTSec/assets/...`。
+> 常见坑：写成 `/assets/css/style.css`（开头带斜杠）后，子目录部署会 404 ——
+> 它会被解析成 `用户名.github.io/assets/...` 而不是 `用户名.github.io/仓库名/assets/...`。
 
-`CNAME`、`.nojekyll` 这类以点或大写开头的文件不要漏掉，`git add .` 一般会带上；若没带上用 `git add -f .nojekyll`。
+`.nojekyll` 这个文件不要删：它阻止 GitHub Pages 用 Jekyll 处理静态文件。
+文件名以点开头，`git add .` 一般会带上；若没带上用 `git add -f .nojekyll`。
 
 ---
 
-## 三、要改的地方（交付后请替换）
+## 四、要改的地方（交付后请替换）
 
 | 位置 | 内容 | 说明 |
 |---|---|---|
@@ -98,7 +132,7 @@ austsec.example.edu.cn
 
 ---
 
-## 四、换配色
+## 五、换配色
 
 所有颜色集中在 `assets/css/style.css` 顶部的 `:root`：
 
@@ -124,7 +158,7 @@ austsec.example.edu.cn
 
 ---
 
-## 五、设计说明
+## 六、设计说明
 
 视觉系统照 [exp-ion.lusion.co](https://exp-ion.lusion.co/) **实测还原**（通过 CDP 抓取计算样式，非目测）：
 
@@ -157,7 +191,7 @@ austsec.example.edu.cn
 
 ---
 
-## 六、本地预览
+## 七、本地预览
 
 ```bash
 python -m http.server 8080
