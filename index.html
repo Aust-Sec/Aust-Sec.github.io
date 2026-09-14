@@ -8,13 +8,15 @@
 <meta name="theme-color" content="#000000" />
 
 <!--
-  字体：Inter + 系统中文字体。买了 PP Neue Montreal 授权的话，
-  把字体放进 assets/fonts/，再把 style.css 里 --font-display 第一项换成
-  'PPNeueMontreal' 即可，其余不用动。
+  字体策略：
+    Inter 已被 SaaS / Dashboard 用烂，七个大写字母会像 Figma 模板。
+    Instrument Sans 更紧、更有编辑感；中文用 Noto Sans SC 并压在雅黑之前，
+    避免 Windows 上退回微软雅黑带来"学校官网 / PPT"的味道。
+    买了 PP Neue Montreal 授权的话，把 family 换成它即可，其余不用动。
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
 
 <link rel="icon" href="./assets/img/logo.png" />
 <link rel="apple-touch-icon" href="./assets/img/logo.png" />
@@ -85,8 +87,8 @@
     <section class="beat is-active" id="top" data-index="1">
       <p class="kicker">安徽理工大学网络空间安全协会</p>
       <h1 class="display" data-kinetic>AUSTSEC</h1>
-      <p class="tags" data-kinetic>CTF · SRC · SECURITY RESEARCH</p>
-      <p class="sub" data-kinetic>LEARN. BREAK. UNDERSTAND.</p>
+      <p class="tags rise">CTF · SRC · SECURITY RESEARCH</p>
+      <p class="sub rise">LEARN. BREAK. UNDERSTAND.</p>
       <p class="hint" aria-hidden="true"><span class="hint-line"></span>SCROLL</p>
     </section>
 
@@ -97,16 +99,16 @@
         <h2 class="display display--sm" data-kinetic>A LAB<br />IN&nbsp;PROGRESS.</h2>
       </div>
       <div class="split-body">
-        <p class="body body--left" data-kinetic>
+        <p class="body body--left rise">
           我们是一群对网络安全感兴趣的人。
           CTF、SRC、漏洞复现、安全工具、攻防技术、开源项目……
           从零开始，一起探索。
         </p>
-        <p class="body body--left" data-kinetic>
+        <p class="body body--left rise">
           我们不打算假装自己已经很成熟。
           <b>第一批成员，将一起决定 AUSTSec 未来是什么样子。</b>
         </p>
-        <p class="pull pull--left" data-kinetic>我们希望减少网络安全学习中的信息差。</p>
+        <p class="pull pull--left rise">我们希望减少网络安全学习中的信息差。</p>
         <dl class="meta">
           <div><dt>STATUS</dt><dd class="is-live">BUILDING FROM ZERO</dd></div>
           <div><dt>ESTABLISHED</dt><dd>2026</dd></div>
@@ -121,54 +123,70 @@
       <h2 class="display display--sm" data-kinetic>WHAT<br />WE DO.</h2>
       <div class="gates">
         <article class="gate">
-          <header class="gate-head">
+          <div class="gate-head">
             <span class="gate-no">01</span>
-            <span class="gate-id">MODULE / CTF</span>
-          </header>
-          <h3 class="gate-title">CTF</h3>
-          <p class="gate-sub">以赛促学</p>
-          <p class="gate-body">Web / Pwn / Reverse / Crypto / Misc。从基础题目开始，理解漏洞、程序与系统背后的原理。</p>
-          <p class="gate-meta">MODE: COMPETITION · ENTRY: ZERO</p>
+            <h3 class="gate-title">CTF</h3>
+            <p class="gate-sub">以赛促学</p>
+          </div>
+          <div class="gate-body-wrap">
+            <p class="gate-body">Web / Pwn / Reverse / Crypto / Misc。从基础题目开始，理解漏洞、程序与系统背后的原理。</p>
+            <div class="gate-foot">
+              <p class="gate-meta">MODULE / CTF · MODE: COMPETITION · ENTRY: ZERO</p>
+              <span class="gate-arrow" aria-hidden="true">↗</span>
+            </div>
+          </div>
         </article>
         <article class="gate">
-          <header class="gate-head">
+          <div class="gate-head">
             <span class="gate-no">02</span>
-            <span class="gate-id">MODULE / SRC</span>
-          </header>
-          <h3 class="gate-title">SRC</h3>
-          <p class="gate-sub">漏洞挖掘</p>
-          <p class="gate-body">资产发现、漏洞复现、报告撰写。在<b>合法授权</b>的前提下，了解真实的安全研究流程。</p>
-          <p class="gate-meta">SCOPE: AUTHORIZED ONLY</p>
+            <h3 class="gate-title">SRC</h3>
+            <p class="gate-sub">漏洞挖掘</p>
+          </div>
+          <div class="gate-body-wrap">
+            <p class="gate-body">资产发现、漏洞复现、报告撰写。在<b>合法授权</b>的前提下，了解真实的安全研究流程。</p>
+            <div class="gate-foot">
+              <p class="gate-meta">MODULE / SRC · SCOPE: AUTHORIZED ONLY</p>
+              <span class="gate-arrow" aria-hidden="true">↗</span>
+            </div>
+          </div>
         </article>
         <article class="gate">
-          <header class="gate-head">
+          <div class="gate-head">
             <span class="gate-no">03</span>
-            <span class="gate-id">MODULE / SECURITY</span>
-          </header>
-          <h3 class="gate-title">SECURITY</h3>
-          <p class="gate-sub">技术研究</p>
-          <p class="gate-body">Web 安全、渗透测试、逆向工程、二进制安全、安全开发，以及 AI × Security 等交叉方向。</p>
-          <p class="gate-meta">SCOPE: OPEN · DEPTH: UNKNOWN</p>
+            <h3 class="gate-title">SECURITY</h3>
+            <p class="gate-sub">技术研究</p>
+          </div>
+          <div class="gate-body-wrap">
+            <p class="gate-body">Web 安全、渗透测试、逆向工程、二进制安全、安全开发，以及 AI × Security 等交叉方向。</p>
+            <div class="gate-foot">
+              <p class="gate-meta">MODULE / SECURITY · SCOPE: OPEN</p>
+              <span class="gate-arrow" aria-hidden="true">↗</span>
+            </div>
+          </div>
         </article>
         <article class="gate">
-          <header class="gate-head">
+          <div class="gate-head">
             <span class="gate-no">04</span>
-            <span class="gate-id">MODULE / SIGNAL</span>
-          </header>
-          <h3 class="gate-title">SIGNAL</h3>
-          <p class="gate-sub">信息与资源</p>
-          <p class="gate-body">比赛信息、学习路线、优质项目、安全社区、工具资源、行业动态。这一块是我们最想做成特色的。</p>
-          <p class="gate-meta">UPDATED: CONTINUOUSLY</p>
+            <h3 class="gate-title">SIGNAL</h3>
+            <p class="gate-sub">信息与资源</p>
+          </div>
+          <div class="gate-body-wrap">
+            <p class="gate-body">比赛信息、学习路线、优质项目、安全社区、工具资源、行业动态。这一块是我们最想做成特色的。</p>
+            <div class="gate-foot">
+              <p class="gate-meta">MODULE / SIGNAL · UPDATED: CONTINUOUSLY</p>
+              <span class="gate-arrow" aria-hidden="true">↗</span>
+            </div>
+          </div>
         </article>
       </div>
-      <p class="legal" data-kinetic>所有漏洞挖掘与测试，仅在<b>合法授权</b>范围内进行。</p>
+      <p class="legal rise">所有漏洞挖掘与测试，仅在<b>合法授权</b>范围内进行。</p>
     </section>
 
     <!-- 03 / START -->
     <section class="beat beat--diagram" id="start" data-index="4">
       <p class="kicker">03 / START</p>
       <h2 class="display display--sm" data-kinetic>START<br />FROM ZERO.</h2>
-      <p class="body" data-kinetic>不知道从哪开始，是大部分人卡住的地方。我们把路径铺在这里。</p>
+      <p class="body rise">不知道从哪开始，是大部分人卡住的地方。我们把路径铺在这里。</p>
       <ol class="path">
         <li><span class="p-no">00</span><span class="p-name">完全零基础</span><span class="p-note">只要你好奇</span></li>
         <li><span class="p-no">01</span><span class="p-name">Linux · Git · 网络基础</span><span class="p-note">工具与环境</span></li>
@@ -183,7 +201,7 @@
     <section class="beat beat--wide" id="signal" data-index="5">
       <p class="kicker">04 / SIGNAL</p>
       <h2 class="display display--sm" data-kinetic>INFORMATION IS<br />ALSO A WEAPON.</h2>
-      <p class="body" data-kinetic>
+      <p class="body rise">
         网络安全最大的门槛，从来不只是技术，还有信息差。
         这些问题我们都会一起整理、一起更新。
       </p>
@@ -195,8 +213,8 @@
         <li>哪些学习路线已经过时？</li>
         <li>现在大家在研究什么？</li>
       </ul>
-      <p class="pull" data-kinetic>我们把这些信息聚在一起。</p>
-      <p class="signal-stamp">SIGNAL / 001 — 待发布</p>
+      <p class="pull rise">我们把这些信息聚在一起。</p>
+      <p class="signal-stamp rise">SIGNAL / 001 — 待发布</p>
     </section>
 
     <!-- 05 / JOIN -->
@@ -205,7 +223,7 @@
       <h2 class="display display--sm" data-kinetic>NO EXPERIENCE<br />REQUIRED.</h2>
 
       <!-- 全站唯一一处 flag{}：CTF 的仪式感，克制地只出现在这里 -->
-      <div class="term" data-kinetic>
+      <div class="term rise">
         <div class="term-bar"><span></span><span></span><span></span><em>flag.txt</em></div>
         <div class="term-body">
           <p class="term-line"><span class="t-p">visitor@austsec</span><span class="t-c">:</span><span class="t-d">~</span><span class="t-c">$</span> <span class="t-cmd">cat flag.txt</span></p>
@@ -213,29 +231,18 @@
         </div>
       </div>
 
-      <p class="body" data-kinetic>
+      <p class="body rise">
         不会 Linux？没写过 C？不知道 CTF 是什么？
         <b>没关系。</b>我们希望找到的不是已经会的人，而是真正愿意学的人。
       </p>
 
-      <div class="qr-row">
-        <figure class="qr">
-          <img src="./assets/img/qq-open.png" alt="AUST2026 网络空间安全 公开交流群二维码，群号 1124487015" width="480" height="618" loading="lazy" />
-          <figcaption>
-            <b>公开交流群</b>
-            <span>群号 1124487015</span>
-          </figcaption>
-        </figure>
-        <figure class="qr">
-          <img src="./assets/img/qq-join.png" alt="安徽理工大学网络空间安全协会 校内招新群二维码，群号 894285023" width="480" height="618" loading="lazy" />
-          <figcaption>
-            <b>校内招新群</b>
-            <span>群号 894285023</span>
-          </figcaption>
-        </figure>
+      <div class="actions">
+        <button class="btn btn--solid" type="button" id="joinOpen">
+          <span class="btn-text"><span>JOIN AUSTSEC ↗</span><span aria-hidden="true">JOIN AUSTSEC ↗</span></span>
+        </button>
       </div>
 
-      <p class="legal" data-kinetic>扫码加入。校内同学请优先进招新群。</p>
+      <p class="legal rise">扫码入口在弹层里 —— 不想让页面最后变成招新海报。</p>
     </section>
 
   </div>
@@ -264,7 +271,34 @@
   </div>
 </div>
 
-<div class="cursor" id="cursor" aria-hidden="true"><span></span></div>
+<!-- ===================== 入会二维码弹层 ===================== -->
+<div class="member-modal" id="memberModal" role="dialog" aria-modal="true" aria-labelledby="memberTitle" hidden>
+  <div class="modal-panel">
+    <div class="modal-head">
+      <h2 class="modal-title" id="memberTitle">JOIN AUSTSEC</h2>
+      <button class="modal-close" id="memberClose" type="button">关闭 ESC</button>
+    </div>
+    <div class="modal-qr">
+      <figure class="qr">
+        <img src="./assets/img/qq-open.png" alt="AUST2026 网络空间安全 公开交流群二维码，群号 1124487015" width="480" height="618" />
+        <figcaption>
+          <b>公开交流群</b>
+          <span>群号 1124487015</span>
+        </figcaption>
+      </figure>
+      <figure class="qr">
+        <img src="./assets/img/qq-join.png" alt="安徽理工大学网络空间安全协会 校内招新群二维码，群号 894285023" width="480" height="618" />
+        <figcaption>
+          <b>校内招新群</b>
+          <span>群号 894285023</span>
+        </figcaption>
+      </figure>
+    </div>
+    <p class="legal">校内同学请优先进招新群。一切技术活动仅用于学习、研究及<b>合法授权</b>测试。</p>
+  </div>
+</div>
+
+<div class="cursor" id="cursor" aria-hidden="true"><span class="cursor-label" id="cursorLabel">VIEW</span></div>
 
 <script src="./assets/js/main.js"></script>
 </body>
