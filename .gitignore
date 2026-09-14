@@ -1,0 +1,13 @@
+# 构建期分析脚本与预览截图，不属于站点，不发布
+_analysis/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 依赖（本项目零依赖，留着以防以后加工具链）
+node_modules/
+*.log

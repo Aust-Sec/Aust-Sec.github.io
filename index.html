@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AUSTSec — 安徽理工大学网络安全协会</title>
+<meta name="description" content="安徽理工大学网络安全协会 AUSTSec。Web 安全、二进制逆向、密码学、渗透测试方向的系统训练与 CTF 竞赛。" />
+<meta name="theme-color" content="#000000" />
+
+<!--
+  字体：原站用 PP Neue Montreal（商业字体）。这里用 Inter + 系统中文字体替代。
+  若你购买了 PP Neue Montreal 授权：把字体文件放进 assets/fonts/，加 @font-face，
+  再把 style.css 里 --font-display 的第一项改成 'PPNeueMontreal' 即可，其余不用动。
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Ccircle cx='16' cy='16' r='7' fill='none' stroke='%23efefef' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%230ff'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="./assets/css/style.css" />
+</head>
+<body>
+
+<!-- ===================== 舞台 ===================== -->
+<main class="stage" id="stage">
+  <canvas id="net" aria-hidden="true"></canvas>
+
+  <!-- 暗角 + 中心光晕：让画面像“打过光”，而不是纯黑平铺 -->
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="halo" aria-hidden="true"></div>
+  <!-- 中心柔和压暗层：粒子在后、文字在前，靠层次保证可读性 -->
+  <div class="scrim" aria-hidden="true"></div>
+
+  <!-- ---------- 四角 UI ---------- -->
+  <header class="corner corner--tl">
+    <a class="brand" href="#top">AUST<span>SEC</span></a>
+  </header>
+
+  <div class="corner corner--tr">
+    <a class="btn" href="#join">
+      <span class="btn-text"><span>加入协会</span><span aria-hidden="true">加入协会</span></span>
+    </a>
+  </div>
+
+  <div class="corner corner--bl">
+    <button class="index-toggle" id="navToggle" aria-expanded="false" aria-controls="overlay">
+      <span class="index-dot" aria-hidden="true"></span>
+      <span>目录</span>
+    </button>
+  </div>
+
+  <div class="corner corner--br">
+    <span>EST. 2016</span>
+    <span class="sep" aria-hidden="true"></span>
+    <span>安徽理工大学</span>
+  </div>
+
+  <!-- ---------- 滚动进度：右侧细线 + 刻度 ---------- -->
+  <nav class="rail" id="rail" aria-label="页面进度">
+    <div class="rail-track"><div class="rail-progress" id="railProgress"></div></div>
+    <ul class="rail-marks" id="railMarks">
+      <li><button class="mark is-active" data-target="#top" aria-label="首页"><span class="mark-line"></span><span class="mark-copy">首页</span></button></li>
+      <li><button class="mark" data-target="#about" aria-label="协会"><span class="mark-line"></span><span class="mark-copy">协会</span></button></li>
+      <li><button class="mark" data-target="#tracks" aria-label="方向"><span class="mark-line"></span><span class="mark-copy">方向</span></button></li>
+      <li><button class="mark" data-target="#join" aria-label="加入"><span class="mark-line"></span><span class="mark-copy">加入</span></button></li>
+    </ul>
+  </nav>
+
+  <!-- ---------- 中央舞台 ---------- -->
+  <div class="center">
+
+    <section class="beat is-active" id="top" data-index="1">
+      <p class="kicker">安徽理工大学 · 网络安全协会</p>
+      <h1 class="display" data-kinetic>AUSTSEC</h1>
+      <p class="sub" data-kinetic>以攻促防 · 以赛促学</p>
+      <p class="hint"><span class="hint-line" aria-hidden="true"></span>滚动或点击右侧刻度继续</p>
+    </section>
+
+    <section class="beat" id="about" data-index="2">
+      <p class="kicker">01 / 协会</p>
+      <h2 class="display display--sm" data-kinetic>NOT A CLUB.<br />A LAB.</h2>
+      <p class="body" data-kinetic>
+        2016 年成立，面向全校开放。我们不做纸上谈兵——
+        所有训练跑在真实靶机上，所有知识来自可复现的漏洞与利用。
+      </p>
+      <div class="facts">
+        <div class="fact"><b data-count="1200">0</b><span>在册社员</span></div>
+        <div class="fact"><b data-count="31">0</b><span>技术小组</span></div>
+        <div class="fact"><b data-count="80">0</b><span>场次 / 学年</span></div>
+      </div>
+    </section>
+
+    <section class="beat" id="tracks" data-index="3">
+      <p class="kicker">02 / 技术方向</p>
+      <h2 class="display display--sm" data-kinetic>FOUR TRACKS</h2>
+      <ul class="tracks">
+        <li><span class="t-no">01</span><span class="t-name">Web 安全</span><span class="t-desc">注入 · XSS · SSRF · 反序列化</span></li>
+        <li><span class="t-no">02</span><span class="t-name">二进制与逆向</span><span class="t-desc">汇编 · 调试 · Pwn · 脱壳</span></li>
+        <li><span class="t-no">03</span><span class="t-name">密码学</span><span class="t-desc">分组密码 · RSA · 侧信道</span></li>
+        <li><span class="t-no">04</span><span class="t-name">渗透与攻防</span><span class="t-desc">内网 · 权限维持 · 应急响应</span></li>
+      </ul>
+    </section>
+
+    <section class="beat" id="join" data-index="4">
+      <p class="kicker">03 / 加入我们</p>
+      <h2 class="display display--sm" data-kinetic>NO EXPERIENCE<br />REQUIRED.</h2>
+      <p class="body" data-kinetic>
+        不限专业、不限年级。每学期开学初统一招新，安排一次入门讲座与一轮基础考核——
+        考核不筛人，只用来帮你选对方向。
+      </p>
+      <div class="actions">
+        <a class="btn btn--solid" href="#" data-todo="填写报名表">
+          <span class="btn-text"><span>填写报名表</span><span aria-hidden="true">填写报名表</span></span>
+        </a>
+        <a class="btn" href="#" data-todo="加入新生群">
+          <span class="btn-text"><span>加入新生群</span><span aria-hidden="true">加入新生群</span></span>
+        </a>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="counter" aria-hidden="true">
+    <span id="beatNow">01</span><span class="sep">/</span><span>04</span>
+  </div>
+</main>
+
+<!-- ===================== 目录浮层 ===================== -->
+<div class="overlay" id="overlay" hidden>
+  <button class="overlay-close" id="overlayClose" aria-label="关闭目录">关闭</button>
+  <nav class="overlay-nav">
+    <a href="#top" data-target="#top"><span class="o-no">01</span>首页</a>
+    <a href="#about" data-target="#about"><span class="o-no">02</span>协会介绍</a>
+    <a href="#tracks" data-target="#tracks"><span class="o-no">03</span>技术方向</a>
+    <a href="#join" data-target="#join"><span class="o-no">04</span>加入我们</a>
+  </nav>
+  <div class="overlay-foot">
+    <a href="https://github.com/" target="_blank" rel="noopener">GitHub &#8599;</a>
+    <p>仅用于教学与研究，请勿用于未授权测试</p>
+    <p>© <span id="year">2026</span> AUSTSec</p>
+  </div>
+</div>
+
+<div class="cursor" id="cursor" aria-hidden="true"><span></span></div>
+
+<script src="./assets/js/main.js"></script>
+</body>
+</html>

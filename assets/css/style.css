@@ -1,0 +1,511 @@
+/* ==========================================================================
+   AUSTSec · 深色科技风
+   --------------------------------------------------------------------------
+   视觉系统照 exp-ion.lusion.co 实测还原：
+     底色 #000 / 前景 #efefef / 角标 11px-600-uppercase
+     大标题 500 字重 + line-height 95%（靠字号撑气势，不是靠加粗）
+     按钮 border-radius:50px + 1px solid 描边 + 透明底
+     右侧 1px 滚动细线 scaleY 生长
+   动效全部由 JS 逐帧驱动 —— 和原站一样，不写 @keyframes。
+   ========================================================================== */
+
+/* ------------------------------ Tokens ---------------------------------- */
+:root{
+  --bg:        #000000;
+  --fg:        #efefef;
+  --fg-2:      rgba(239,239,239,.56);
+  --fg-3:      rgba(239,239,239,.32);
+  --fg-4:      rgba(239,239,239,.10);
+  --line:      rgba(239,239,239,.16);
+  --accent:    #00ffff;
+
+  --font-display: "PPNeueMontreal", "Inter", -apple-system, BlinkMacSystemFont,
+                  "Segoe UI", "PingFang SC", "Hiragino Sans GB",
+                  "Microsoft YaHei", "Source Han Sans SC", sans-serif;
+  --font-mono: "SFMono-Regular", "JetBrains Mono", Menlo, Consolas,
+               "Liberation Mono", monospace;
+
+  --pad: clamp(20px, 3.4vw, 52px);
+  --ease: cubic-bezier(.22,1,.36,1);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+
+html{
+  background:var(--bg);
+  /* 原站禁用了原生滚动条，用自绘进度线代替 */
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+  scroll-behavior:smooth;
+}
+html::-webkit-scrollbar{width:0;height:0;display:none}
+
+body{
+  margin:0;background:var(--bg);color:var(--fg);
+  font-family:var(--font-display);
+  font-size:16px;line-height:1.6;font-weight:400;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;
+}
+
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+ul{margin:0;padding:0;list-style:none}
+
+/* 桌面端隐藏系统光标，换成自绘（触摸设备保留） */
+@media (hover:hover) and (pointer:fine){
+  body.has-custom-cursor,
+  body.has-custom-cursor *{cursor:none !important}
+}
+
+/* ------------------------------ 舞台 ------------------------------------ */
+.stage{
+  position:relative;
+  min-height:100vh;
+  overflow:hidden;
+}
+
+#net{
+  position:fixed;left:0;top:0;
+  width:100%;height:100%;
+  display:block;z-index:0;
+  pointer-events:none;
+}
+
+/* 暗角：四角压暗，视线收拢到中心 */
+.vignette{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 78% 68% at 50% 52%,
+    rgba(0,0,0,0) 0%, rgba(0,0,0,.32) 62%, rgba(0,0,0,.82) 100%);
+}
+
+/* 中心光晕：模拟顶部打过一道光 */
+.halo{
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 46% 34% at 50% 46%,
+    rgba(239,239,239,.055) 0%, rgba(239,239,239,0) 70%);
+}
+
+/* 文字区柔和压暗：主体图形偏右，这里把左侧文字区的对比度拉回来 */
+.scrim{
+  position:fixed;inset:0;z-index:2;pointer-events:none;
+  background:
+    radial-gradient(ellipse 38% 34% at 42% 50%,
+      rgba(0,0,0,.62) 0%, rgba(0,0,0,.30) 55%, rgba(0,0,0,0) 100%),
+    linear-gradient(90deg,
+      rgba(0,0,0,.72) 0%, rgba(0,0,0,.34) 34%, rgba(0,0,0,0) 62%);
+}
+/* 内容页：文字更密，再叠一层局部压暗（不能用 opacity>1 放大渐变） */
+.scrim::after{
+  content:"";position:absolute;left:0;top:0;right:0;bottom:0;
+  background:radial-gradient(ellipse 40% 40% at 50% 50%,
+    rgba(0,0,0,.55) 0%, rgba(0,0,0,.22) 58%, rgba(0,0,0,0) 100%);
+  opacity:0;
+  transition:opacity .6s var(--ease);
+}
+body.is-deep .scrim::after{opacity:1}
+
+/* ------------------------------ 四角 UI --------------------------------- */
+.corner{
+  position:fixed;z-index:20;
+  display:flex;align-items:center;gap:12px;
+  font-size:11px;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--fg);
+}
+.corner--tl{left:var(--pad);top:var(--pad)}
+.corner--tr{right:var(--pad);top:var(--pad)}
+.corner--bl{left:var(--pad);bottom:var(--pad)}
+.corner--br{right:var(--pad);bottom:var(--pad);color:var(--fg-2);font-weight:500}
+
+.sep{width:14px;height:1px;background:var(--fg-4)}
+
+.brand{
+  font-size:14px;font-weight:600;letter-spacing:.16em;
+  text-transform:uppercase;
+  transition:opacity .3s var(--ease);
+}
+.brand:hover{opacity:.65}
+.brand span{color:var(--accent)}
+
+/* 目录开关 */
+.index-toggle{
+  display:flex;align-items:center;gap:9px;
+  font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  transition:opacity .3s var(--ease);
+}
+.index-toggle:hover{opacity:.65}
+.index-dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--fg-3);
+  transition:background .3s var(--ease),box-shadow .3s var(--ease);
+}
+.index-toggle:hover .index-dot,
+.index-toggle[aria-expanded="true"] .index-dot{
+  background:var(--accent);
+  box-shadow:0 0 10px rgba(0,255,255,.6);
+}
+
+/* ------------------------------ 按钮 ------------------------------------ */
+/* 描边药丸 + 文字双层：悬停时整体上移一行，实现“翻字” */
+.btn{
+  display:inline-block;
+  border:1px solid var(--fg);
+  border-radius:50px;
+  font-size:11px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.12em;
+  overflow:hidden;
+  transition:background .35s var(--ease),color .35s var(--ease),
+             border-color .35s var(--ease);
+}
+.btn-text{
+  display:flex;flex-direction:column;
+  padding:10px 22px;
+  transition:transform .45s var(--ease);
+}
+/* 行高要够，否则两行字在裁切容器里会视觉重叠 */
+.btn-text > span{display:block;line-height:1.5;white-space:nowrap}
+.btn:hover .btn-text,
+.btn:focus-visible .btn-text{transform:translateY(-50%)}
+
+.btn:hover{background:var(--fg);color:var(--bg)}
+.btn--solid{background:var(--fg);color:var(--bg)}
+.btn--solid:hover{background:transparent;color:var(--fg)}
+.btn:focus-visible{outline:1px solid var(--accent);outline-offset:3px}
+
+/* ------------------------------ 滚动进度 -------------------------------- */
+/* 原站：右侧 25rem 高、1px 宽，轨道 #33333380，进度 scaleY 从顶部生长 */
+.rail{
+  position:fixed;right:var(--pad);top:50%;z-index:20;
+  transform:translateY(-50%);
+  height:min(320px,42vh);
+  display:flex;align-items:stretch;
+}
+.rail-track{
+  position:relative;width:1px;height:100%;
+  background:rgba(51,51,51,.5);
+}
+.rail-progress{
+  position:absolute;left:0;top:0;width:1px;height:100%;
+  background:var(--accent);
+  transform:scaleY(0);transform-origin:top center;
+  box-shadow:0 0 8px rgba(0,255,255,.45);
+}
+.rail-marks{
+  position:absolute;left:0;top:0;height:100%;width:1px;
+  display:flex;flex-direction:column;justify-content:space-between;
+}
+.mark{
+  position:relative;              /* 关键：给 .mark-copy 提供定位锚点 */
+  display:flex;align-items:center;
+  justify-content:flex-end;height:1px;
+  transition:opacity .3s var(--ease);
+}
+/* 刻度线：4px x 2px，选中变亮 */
+.mark-line{
+  position:absolute;left:-1px;top:-1px;
+  width:4px;height:2px;
+  background:rgba(239,239,239,.5);
+  transition:background .3s var(--ease),transform .3s var(--ease);
+}
+.mark-copy{
+  position:absolute;right:14px;top:-7px;
+  font-size:11px;font-weight:500;letter-spacing:.06em;
+  white-space:nowrap;color:var(--fg-4);
+  transition:color .4s var(--ease),transform .4s var(--ease);
+  transform:translateX(6px);
+}
+.mark:hover .mark-copy{color:var(--fg-2)}
+.mark.is-active .mark-copy{color:var(--fg);transform:none}
+.mark.is-active .mark-line{
+  background:var(--accent);
+  transform:scaleX(1.75);
+  box-shadow:0 0 8px rgba(0,255,255,.6);
+}
+
+/* ------------------------------ 中央舞台 -------------------------------- */
+.center{
+  position:relative;z-index:10;
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  padding:0 var(--pad);
+  pointer-events:none;   /* 让画布能收到鼠标；.beat 内部再单独打开 */
+}
+
+/* 每个 beat 占满一屏并居中，靠 opacity 交叉淡入 */
+.beat{
+  grid-area:1/1;
+  text-align:center;
+  width:100%;max-width:900px;
+  pointer-events:auto;
+  opacity:0;visibility:hidden;
+  transition:opacity .8s var(--ease),visibility .8s;
+}
+.beat.is-active{opacity:1;visibility:visible}
+
+.kicker{
+  margin:0 0 22px;
+  font-size:11px;font-weight:600;
+  letter-spacing:.24em;text-transform:uppercase;
+  color:var(--fg-3);
+}
+
+.display{
+  margin:0;
+  /* 原站 .font-heading-1 = 8rem / 500 / line-height 95% / uppercase */
+  font-size:clamp(38px,9.2vw,132px);
+  font-weight:500;
+  line-height:.95;
+  letter-spacing:-.02em;
+  text-transform:uppercase;
+}
+.display--sm{font-size:clamp(30px,5.6vw,74px);line-height:1.02}
+
+.sub{
+  margin:30px 0 0;
+  font-size:clamp(13px,1.3vw,17px);
+  font-weight:400;letter-spacing:.34em;
+  color:var(--fg-2);
+}
+
+.body{
+  margin:26px auto 0;
+  max-width:46ch;
+  font-size:15px;line-height:1.95;
+  color:var(--fg-2);
+  text-align:center;
+}
+
+/* 滚动提示 */
+.hint{
+  margin:56px 0 0;
+  display:flex;align-items:center;justify-content:center;gap:11px;
+  font-size:11px;font-weight:500;
+  letter-spacing:.16em;text-transform:uppercase;
+  color:var(--fg-3);
+}
+.hint-line{
+  position:relative;width:1px;height:34px;
+  background:var(--fg-4);overflow:hidden;
+}
+/* 这一条是唯一的 CSS 动画：一个下滑的光点，纯装饰 */
+.hint-line::after{
+  content:"";position:absolute;left:0;top:-40%;
+  width:1px;height:40%;background:var(--accent);
+  animation:trace 2.1s var(--ease) infinite;
+}
+@keyframes trace{0%{top:-40%}100%{top:100%}}
+
+/* 数据 */
+.facts{
+  margin:44px auto 0;
+  display:flex;justify-content:center;gap:clamp(28px,6vw,76px);
+  position:relative;
+  z-index:1;              /* 建独立层叠上下文，让下面的 ::before 只压在本区块内 */
+}
+/* 数字区若压在主体图形上，加一层局部压暗保证标签可读 */
+.facts::before{
+  content:"";position:absolute;inset:-26px -40px;
+  background:radial-gradient(ellipse 68% 120% at 50% 50%,
+    rgba(0,0,0,.72) 0%, rgba(0,0,0,.38) 60%, rgba(0,0,0,0) 100%);
+  z-index:-1;
+}
+.fact{display:flex;flex-direction:column;gap:9px;align-items:center}
+.fact b{
+  font-size:clamp(28px,3.6vw,46px);font-weight:500;
+  line-height:1;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;
+}
+.fact span{
+  font-size:10.5px;font-weight:600;
+  letter-spacing:.2em;text-transform:uppercase;
+  color:var(--fg-2);
+}
+
+/* 技术方向列表 */
+.tracks{
+  margin:40px auto 0;max-width:660px;
+  border-top:1px solid var(--line);
+}
+.tracks li{
+  display:grid;grid-template-columns:52px 1fr auto;
+  align-items:center;gap:18px;
+  padding:16px 4px;
+  border-bottom:1px solid var(--line);
+  transition:background .3s var(--ease),padding-left .3s var(--ease);
+}
+.tracks li:hover{background:rgba(239,239,239,.035);padding-left:12px}
+.t-no{
+  font-family:var(--font-mono);
+  font-size:11px;letter-spacing:.1em;color:var(--accent);
+}
+.t-name{font-size:15px;font-weight:500;text-align:left}
+.t-desc{
+  font-size:11.5px;letter-spacing:.04em;
+  color:var(--fg-3);text-align:right;
+}
+
+.actions{
+  margin:40px 0 0;
+  display:flex;justify-content:center;gap:14px;flex-wrap:wrap;
+}
+
+/* 左下角 01/04 计数 */
+.counter{
+  position:fixed;left:var(--pad);bottom:calc(var(--pad) + 26px);
+  z-index:20;
+  font-family:var(--font-mono);
+  font-size:11px;letter-spacing:.1em;color:var(--fg-2);
+}
+.counter .sep{margin:0 4px;color:var(--fg-4)}
+
+/* ------------------------------ 目录浮层 -------------------------------- */
+.overlay{
+  position:fixed;inset:0;z-index:90;
+  background:rgba(0,0,0,.94);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  display:flex;flex-direction:column;justify-content:center;
+  padding:var(--pad);
+  opacity:0;
+  transition:opacity .45s var(--ease);
+}
+.overlay.is-open{opacity:1}
+.overlay[hidden]{display:none}
+
+.overlay-close{
+  position:absolute;top:var(--pad);right:var(--pad);
+  font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--fg-2);
+  transition:color .3s var(--ease);
+}
+.overlay-close:hover{color:var(--fg)}
+
+.overlay-nav{
+  display:flex;flex-direction:column;
+  gap:clamp(6px,1.4vh,16px);
+  max-width:760px;width:100%;margin:0 auto;
+}
+.overlay-nav a{
+  display:flex;align-items:baseline;gap:22px;
+  font-size:clamp(26px,5.4vw,62px);
+  font-weight:500;line-height:1.12;letter-spacing:-.02em;
+  text-transform:uppercase;
+  color:var(--fg-3);
+  transition:color .35s var(--ease),transform .45s var(--ease);
+}
+.overlay-nav a:hover{color:var(--fg);transform:translateX(14px)}
+.o-no{
+  font-family:var(--font-mono);
+  font-size:11px;letter-spacing:.1em;color:var(--accent);
+}
+
+.overlay-foot{
+  position:absolute;left:var(--pad);right:var(--pad);bottom:var(--pad);
+  display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--fg-3);
+}
+.overlay-foot p{margin:0}
+.overlay-foot a{transition:color .3s var(--ease)}
+.overlay-foot a:hover{color:var(--fg)}
+
+/* ------------------------------ 自绘光标 -------------------------------- */
+.cursor{
+  position:fixed;left:0;top:0;z-index:9999;
+  width:50px;height:50px;margin:-25px 0 0 -25px;
+  border-radius:50%;
+  background:rgba(239,239,239,.14);
+  border:1px solid rgba(239,239,239,.22);
+  pointer-events:none;
+  opacity:0;
+  transform:translate3d(-100px,-100px,0) scale(1);
+  transition:opacity .3s var(--ease),width .3s var(--ease),height .3s var(--ease),
+             margin .3s var(--ease),background .3s var(--ease);
+  will-change:transform,opacity;
+}
+.cursor.is-visible{opacity:1}
+.cursor.is-hot{
+  width:74px;height:74px;margin:-37px 0 0 -37px;
+  background:rgba(0,255,255,.12);
+  border-color:rgba(0,255,255,.35);
+}
+@media (hover:none),(pointer:coarse){.cursor{display:none}}
+
+/* ==========================================================================
+   文字动效 —— 逐字「遮挡揭示 + 模糊对焦」
+   ========================================================================== */
+.ch{display:inline-block;overflow:hidden;vertical-align:top;line-height:1.02}
+.ch-in{
+  display:inline-block;
+  transform:translate3d(0,105%,0);
+  opacity:0;filter:blur(4px);
+  transition:transform .78s var(--ease),opacity .6s ease,filter .7s ease;
+}
+.is-in .ch-in{transform:none;opacity:1;filter:blur(0)}
+
+/* 区块级淡入上浮（位移压到 14px，克制） */
+.rise{opacity:0;transform:translateY(14px);transition:opacity .9s ease,transform .9s var(--ease)}
+.rise.is-in{opacity:1;transform:none}
+
+/* 换行标签不能被切掉 */
+.display br{display:inline}
+
+/* ==========================================================================
+   尊重系统「减少动态效果」
+   ========================================================================== */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .ch-in{transform:none;opacity:1;filter:none;transition:none}
+  .rise{opacity:1;transform:none;transition:none}
+  .hint-line::after{animation:none;display:none}
+  .beat{transition:none}
+  .btn-text,.mark-copy,.overlay-nav a{transition:none}
+}
+
+/* ==========================================================================
+   响应式
+   ========================================================================== */
+@media (max-width:820px){
+  :root{--pad:20px}
+
+  /* 右侧刻度线在窄屏收窄，避免和内容打架 */
+  .rail{height:30vh}
+  .mark-copy{display:none}
+
+  .corner--br{display:none}
+  .counter{display:none}
+
+  .display{font-size:clamp(34px,11vw,64px)}
+  .display--sm{font-size:clamp(27px,7.4vw,44px)}
+  .sub{letter-spacing:.2em}
+
+  /* 两列：单列会把整屏拉太高，留白难看 */
+  .facts{gap:22px 28px;flex-wrap:wrap}
+  .fact b{font-size:clamp(26px,7vw,34px)}
+  .fact span{font-size:10px;letter-spacing:.14em}
+
+  .tracks li{grid-template-columns:40px 1fr;gap:12px;padding:13px 4px}
+  .t-desc{display:none}
+  .t-no{font-size:10px}
+
+  .body{font-size:14px;line-height:1.9}
+
+  .overlay-foot{position:static;margin-top:34px;flex-direction:column;align-items:flex-start}
+  .overlay{justify-content:flex-start;padding-top:calc(var(--pad) + 44px)}
+}
+
+@media (max-width:420px){
+  /* 保持两列，数据块不要竖直堆成一长条 */
+  .facts{gap:20px 18px}
+  .fact b{font-size:26px}
+  .display{font-size:clamp(30px,11.5vw,52px)}
+}
+
+/* 打印 */
+@media print{
+  #net,.vignette,.halo,.rail,.cursor,.hint{display:none}
+  body{background:#fff;color:#000}
+  .beat{opacity:1;visibility:visible;position:static}
+  .ch-in{transform:none;opacity:1;filter:none}
+}
