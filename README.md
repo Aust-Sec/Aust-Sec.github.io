@@ -17,8 +17,10 @@
 │   └── img/
 │       ├── logo.svg        # 站点使用的矢量会徽（透明底，可无限缩放）
 │       ├── logo.png        # 原始会徽位图，仅保留作设计参考
-│       ├── qq-open.png     # 公开交流群二维码
-│       └── qq-join.png     # 校内招新群二维码
+│       ├── qq-campus.svg   # 校内招新群矢量二维码
+│       ├── qq-public.svg   # 公开交流群矢量二维码
+│       ├── qq-open.png     # 原始二维码截图，仅保留作参考
+│       └── qq-join.png     # 原始二维码截图，仅保留作参考
 └── README.md
 ```
 

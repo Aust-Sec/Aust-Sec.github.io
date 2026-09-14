@@ -748,7 +748,7 @@ body.is-deep .scrim::after{opacity:1}
 .member-modal[hidden]{display:none}
 
 .modal-panel{
-  width:min(620px,100%);
+  width:min(720px,100%);
   border:1px solid var(--line);
   background:rgba(255,255,255,.014);
   padding:clamp(22px,3vw,38px);
@@ -779,14 +779,15 @@ body.is-deep .scrim::after{opacity:1}
   gap:clamp(18px,3vw,40px);flex-wrap:wrap;
 }.qr{
   margin:0;
-  width:min(200px,40vw);
+  width:min(240px,40vw);
   display:flex;flex-direction:column;gap:12px;
 }
-/* 二维码本身是深色卡片，描边即可融入，不需要白底 */
+.qr-code{display:block}
+/* 二维码重新生成为 SVG，保持高对比度并在任何屏幕密度下清晰。 */
 .qr img{
-  width:100%;height:auto;display:block;
+  width:100%;height:auto;aspect-ratio:1;display:block;
   border:1px solid var(--line);
-  background:#111;
+  background:#f4fdff;
   transition:border-color .35s var(--ease-soft),transform .35s var(--ease);
 }
 .qr:hover img{border-color:var(--accent);transform:translateY(-3px)}
@@ -1052,7 +1053,7 @@ body.hud-on .hud.is-on{opacity:.72}
 
   .hud{display:none}
 
-  .qr{width:min(240px,64vw)}
+  .qr{width:min(260px,72vw)}
   .body{font-size:14px;line-height:1.9}
   .pull{font-size:15px}
 
