@@ -301,9 +301,10 @@ body.is-deep .scrim::after{opacity:1}
 /* 首页标题要真正压场：横向成为整屏的视觉结构，而不是"一句标题" */
 #top .display{
   font-size:clamp(78px,13.5vw,210px);
-  line-height:.84;
+  line-height:.76;
   letter-spacing:-.055em;
 }
+#top .display br{display:block}
 .display--sm{font-size:clamp(46px,7vw,100px);line-height:.92}
 
 .sub{
