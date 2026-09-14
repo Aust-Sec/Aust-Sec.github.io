@@ -95,11 +95,8 @@ try {
   Write-Host ""
   Write-Host "PUSH OK" -ForegroundColor Green
   Write-Host ""
-  Write-Host "One-time setup on GitHub:" -ForegroundColor White
-  Write-Host "  Settings -> Pages -> Source: 'Deploy from a branch'"
-  Write-Host "  Branch: main   Folder: /(root)   Save"
-  Write-Host ""
   Write-Host "Live in 1-2 minutes at:  https://austsec.github.io/" -ForegroundColor Cyan
+  Write-Host "(repo name = <org>.github.io, so Pages is published at the domain root)"
   Write-Host ""
 }
 finally {
