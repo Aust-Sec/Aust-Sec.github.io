@@ -1,5 +1,5 @@
 /* ==========================================================================
-   AUSTSec · 主脚本
+   AustSec · 主脚本
    --------------------------------------------------------------------------
    1. 背景三层结构（远景 dust / 主体 topology core / 近景 fragment）+ 视差
    2. 主体"姿态系统"：始终保持完整球体，只做轻微拉伸、扭转与呼吸。
@@ -553,6 +553,7 @@
       current = i;
       applyScene(beats[i].id);
       document.body.classList.toggle('is-deep', i > 0);
+      document.body.classList.toggle('is-join', beats[i].id === 'join');
       document.body.classList.toggle('hud-on', !!HUD_SCENES[beats[i].id]);
     }
 

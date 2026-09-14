@@ -1,5 +1,5 @@
 /* ==========================================================================
-   AUSTSec · 深色科技风
+   AustSec · 深色科技风
    --------------------------------------------------------------------------
    视觉系统照 exp-ion.lusion.co 实测还原：
      底色 #000 / 前景 #efefef / 角标 11px-600-uppercase
@@ -142,13 +142,16 @@ body.is-deep .scrim::after{opacity:1}
 .corner--tr{right:var(--pad);top:var(--pad)}
 .corner--bl{left:var(--pad);bottom:var(--pad)}
 .corner--br{right:var(--pad);bottom:var(--pad);color:var(--fg-2);font-weight:500}
+body.is-join .corner--bl,
+body.is-join .corner--br,
+body.is-join .counter{opacity:0;pointer-events:none}
 
 .sep{width:14px;height:1px;background:var(--fg-4)}
 
 .brand{
   display:flex;align-items:center;gap:10px;
   font-size:14px;font-weight:600;letter-spacing:.16em;
-  text-transform:uppercase;
+  text-transform:none;
   transition:opacity .3s var(--ease);
 }
 .brand:hover{opacity:.7}
@@ -182,7 +185,7 @@ body.is-deep .scrim::after{opacity:1}
   border:1px solid var(--fg);
   border-radius:50px;
   font-size:11px;font-weight:600;
-  text-transform:uppercase;letter-spacing:.12em;
+  letter-spacing:.12em;
   overflow:hidden;
   transition:background .35s var(--ease-soft),color .35s var(--ease-soft),
              border-color .35s var(--ease-soft);
@@ -758,7 +761,7 @@ body.is-deep .scrim::after{opacity:1}
 .modal-title{
   margin:0;
   font-size:clamp(20px,2.4vw,30px);
-  font-weight:500;letter-spacing:-.02em;text-transform:uppercase;
+  font-weight:500;letter-spacing:-.02em;
 }
 .modal-close{
   font-family:var(--font-mono);
@@ -832,6 +835,22 @@ body.hud-on .hud.is-on{opacity:.72}
 }
 .counter .sep{margin:0 4px;color:var(--fg-4)}
 
+/* ------------------------------ 页脚 ------------------------------------ */
+.site-footer{
+  position:fixed;left:var(--pad);right:var(--pad);bottom:var(--pad);z-index:21;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  padding-top:12px;border-top:1px solid var(--line);
+  font-family:var(--font-mono);font-size:10px;line-height:1.5;
+  letter-spacing:.08em;color:var(--fg-3);
+  opacity:0;transform:translateY(10px);pointer-events:none;
+  transition:opacity .5s var(--ease-soft),transform .5s var(--ease);
+}
+body.is-join .site-footer{opacity:1;transform:none;pointer-events:auto}
+.footer-links,.footer-meta{display:flex;align-items:center;gap:clamp(14px,2vw,28px);flex-wrap:wrap}
+.site-footer a{color:var(--fg-2);transition:color .3s var(--ease-soft)}
+.site-footer a:hover{color:var(--accent)}
+.footer-author{color:var(--fg-2)}
+
 /* ------------------------------ 目录浮层 -------------------------------- */
 .overlay{
   position:fixed;inset:0;z-index:90;
@@ -875,7 +894,7 @@ body.hud-on .hud.is-on{opacity:.72}
 .overlay-foot{
   position:absolute;left:var(--pad);right:var(--pad);bottom:var(--pad);
   display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;
-  font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  font-size:11px;letter-spacing:.1em;
   color:var(--fg-3);
 }
 .overlay-foot p{margin:0}
@@ -1077,6 +1096,17 @@ body.hud-on .hud.is-on{opacity:.72}
     padding:max(72px, calc(env(safe-area-inset-top) + 56px)) max(20px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
   }
   .member-modal .modal-panel{margin:auto 0}
+
+  .site-footer{
+    position:relative;left:auto;right:auto;bottom:auto;
+    margin:0;
+    padding:24px max(20px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+    flex-direction:column;align-items:flex-start;gap:14px;
+    background:linear-gradient(180deg,rgba(3,5,6,.42),rgba(3,5,6,.96) 30%);
+    opacity:1;transform:none;pointer-events:auto;
+  }
+  .footer-links,.footer-meta{gap:10px 18px}
+  .footer-meta{flex-direction:column;align-items:flex-start}
 }
 
 @media (max-width:420px){

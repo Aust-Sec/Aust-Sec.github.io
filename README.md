@@ -1,4 +1,4 @@
-# AUSTSec 官网
+# AustSec 官网
 
 安徽理工大学网络空间安全协会官方站点。**纯静态、零依赖、零构建** —— 直接把仓库根目录发布到 GitHub Pages 即可。
 
@@ -39,10 +39,7 @@
    这些「很少有人主动告诉你」的东西，是 SIGNAL 那一屏要解决的。
 
 > **EST. 2026. STARTING FROM ZERO.**
-> 没有历史包袱，没有固定路线。我们想和第一批成员一起定义 AUSTSec。
-
-合规声明在页面里用**强调色而非弱化色**，目录浮层底部保留
-`HACK THE LAB. NOT THE LAW.`，避免被误读成提供攻击服务。
+> 没有历史包袱，没有固定路线。我们想和第一批成员一起定义 AustSec。
 
 ---
 
@@ -157,11 +154,11 @@ austsec.example.edu.cn
 
 | 位置 | 现在 | 说明 |
 |---|---|---|
-| `index.html` 加入区 | 两个二维码 + 群号 | 换群时替换 `assets/img/qq-*.png`，并同步改 `figcaption` 里的群号和 `alt` 文本 |
+| `index.html` 加入区 | 两个二维码 + 群号 | 换群时替换 `assets/img/qq-*.svg`，并同步改链接、群号和 `alt` 文本 |
 | `#whatwedo` 四块卡片 | CTF / SRC / SECURITY / SIGNAL | 加方向就在 `.gates` 里复制一个 `<article class="gate">` |
 | `#start` 学习路径 | 6 步 | 加/删 `<li>` 即可，左侧竖线是 CSS 画的，会自动延伸 |
 | `#signal` 问题清单 | 6 条 | 这是 SIGNAL 那一屏的核心，建议持续补充 |
-| 目录浮层 | `HACK THE LAB. NOT THE LAW.` | 建议保留，避免被误读成提供攻击服务 |
+| 页脚 | GitHub、开源主页、版权与作者 | 作者链接使用个人 GitHub 主页 |
 
 > ⚠️ **不要编造历史、人数、获奖成绩。** 协会 2026 年新成立，
 > 「新」本身就是卖点。任何虚构数字都会在被追问时反噬可信度。
@@ -173,7 +170,7 @@ austsec.example.edu.cn
 
 | 序号 | `id` | 标题 |
 |---|---|---|
-| 00 | `top` | `AUSTSEC` |
+| 00 | `top` | `AUST / SEC` |
 | 01 | `about` | `NOT A CLUB. A LAB.` |
 | 02 | `whatwedo` | `WHAT WE DO` |
 | 03 | `start` | `START HERE` |
