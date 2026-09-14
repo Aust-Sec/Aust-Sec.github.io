@@ -96,14 +96,17 @@ ul{margin:0;padding:0;list-style:none}
     rgba(0,0,0,0) 40%, rgba(0,0,0,.52) 100%);
 }
 
-/* 环境光：极淡的深蓝，肉眼感觉是"黑暗中有光"，而不是"蓝色渐变" */
+/* 环境光：极淡的深蓝，肉眼感觉是"黑暗中有光"，而不是"蓝色渐变"。
+   关键：位置跟着 --orb-x/--orb-y 走。
+   球在跑而光源不动的话，ABOUT（x94）和 JOIN（x54）会出现
+   "球和光不是一个物体"的空间错误 —— 高级感常被这种地方毁掉。 */
 .halo{
   position:fixed;inset:0;z-index:1;pointer-events:none;
   background:
-    radial-gradient(circle at 70% 48%,
-      rgba(41,109,255,.13) 0%, rgba(41,109,255,0) 45%),
+    radial-gradient(circle at calc(var(--orb-x) * 1%) calc(var(--orb-y) * 1%),
+      rgba(41,109,255,.14) 0%, rgba(41,109,255,0) 46%),
     radial-gradient(ellipse 46% 34% at 50% 46%,
-      rgba(242,244,245,.030) 0%, rgba(242,244,245,0) 70%);
+      rgba(242,244,245,.028) 0%, rgba(242,244,245,0) 70%);
 }
 
 /* 文字区局部压暗。
@@ -170,23 +173,25 @@ body.is-deep .scrim::after{opacity:1}
 }
 
 /* ------------------------------ 按钮 ------------------------------------ */
-/* 描边药丸 + 文字双层：悬停时整体上移一行，实现“翻字” */
+/* 描边药丸 + 文字双层：悬停时整体上移一行，实现"翻字"。
+   padding 必须放在 .btn 上，不能放在 .btn-text 上 ——
+   translateY(-50%) 是按含 padding 的盒子高算的，带上 padding 后
+   位移量会大于一行文字高度，悬停时第二行只露出一半。 */
 .btn{
   display:inline-block;
+  padding:10px 22px;
   border:1px solid var(--fg);
   border-radius:50px;
   font-size:11px;font-weight:600;
   text-transform:uppercase;letter-spacing:.12em;
   overflow:hidden;
-  transition:background .35s var(--ease),color .35s var(--ease),
-             border-color .35s var(--ease);
+  transition:background .35s var(--ease-soft),color .35s var(--ease-soft),
+             border-color .35s var(--ease-soft);
 }
 .btn-text{
-  display:flex;flex-direction:column;
-  padding:10px 22px;
+  display:block;
   transition:transform .45s var(--ease);
 }
-/* 行高要够，否则两行字在裁切容器里会视觉重叠 */
 .btn-text > span{display:block;line-height:1.5;white-space:nowrap}
 .btn:hover .btn-text,
 .btn:focus-visible .btn-text{transform:translateY(-50%)}
@@ -231,19 +236,23 @@ body.is-deep .scrim::after{opacity:1}
   background:rgba(239,239,239,.5);
   transition:background .3s var(--ease),transform .3s var(--ease);
 }
-/* 栏目名放在细线左侧。
-   细线距右边缘只有 var(--pad)，right:14px 才是安全区；
-   之前写 left:14px 会把标签推到视口外，被 .stage 的 overflow:hidden 裁掉。 */
+/* 栏目名：平时全部隐藏，只有"当前项"和 hover 项显示。
+   球已经放大并靠右，右边越干净，球越有压迫感。 */
 .mark-copy{
   position:absolute;right:14px;top:-7px;
   display:flex;align-items:baseline;gap:7px;
   font-size:11px;font-weight:500;letter-spacing:.04em;
-  white-space:nowrap;color:var(--fg-4);
-  transition:color .4s var(--ease-soft),transform .4s var(--ease);
-  transform:translateX(6px);
+  white-space:nowrap;
+  color:transparent;                      /* 平时不可见，但仍占位避免跳动 */
+  opacity:0;
+  transition:opacity .45s var(--ease-soft),color .45s var(--ease-soft);
+  pointer-events:none;
 }
-.mark:hover .mark-copy{color:var(--fg-2)}
-.mark.is-active .mark-copy{color:var(--fg);transform:none}
+.mark:hover .mark-copy{opacity:1;color:var(--fg-2)}
+.mark.is-active .mark-copy{opacity:1;color:var(--fg)}
+/* 非当前项的刻度线压得更暗，当前项才亮 */
+.mark-line{background:rgba(242,244,245,.28)}
+.mark:hover .mark-line{background:rgba(242,244,245,.6)}
 .mark.is-active .mark-line{
   background:var(--accent);
   transform:scaleX(1.75);
@@ -332,15 +341,7 @@ body.is-deep .scrim::after{opacity:1}
   color:var(--fg);
 }
 
-/* 成立年份钢印 */
-.stamp{
-  margin:30px 0 0;
-  font-family:var(--font-mono);
-  font-size:11px;letter-spacing:.22em;
-  color:var(--fg-3);
-}
-
-/* 法律/合规提示 —— 用强调色，不要弱化 */
+/* 成立年份钢印 *//* 法律/合规提示 —— 用强调色，不要弱化 */
 .legal{
   margin:34px auto 0;
   max-width:40em;
@@ -378,33 +379,7 @@ body.is-deep .scrim::after{opacity:1}
 }
 @keyframes trace{0%{top:-40%}100%{top:100%}}
 
-/* 数据 */
-.facts{
-  margin:44px auto 0;
-  display:flex;justify-content:center;gap:clamp(28px,6vw,76px);
-  position:relative;
-  z-index:1;              /* 建独立层叠上下文，让下面的 ::before 只压在本区块内 */
-}
-/* 数字区若压在主体图形上，加一层局部压暗保证标签可读 */
-.facts::before{
-  content:"";position:absolute;inset:-26px -40px;
-  background:radial-gradient(ellipse 68% 120% at 50% 50%,
-    rgba(0,0,0,.72) 0%, rgba(0,0,0,.38) 60%, rgba(0,0,0,0) 100%);
-  z-index:-1;
-}
-.fact{display:flex;flex-direction:column;gap:9px;align-items:center}
-.fact b{
-  font-size:clamp(28px,3.6vw,46px);font-weight:500;
-  line-height:1;letter-spacing:-.02em;
-  font-variant-numeric:tabular-nums;
-}
-.fact span{
-  font-size:10.5px;font-weight:600;
-  letter-spacing:.2em;text-transform:uppercase;
-  color:var(--fg-2);
-}
-
-.actions{
+/* 数据 *//* 数字区若压在主体图形上，加一层局部压暗保证标签可读 */.actions{
   margin:40px 0 0;
   display:flex;justify-content:center;gap:14px;flex-wrap:wrap;
 }
@@ -471,11 +446,7 @@ body.is-deep .scrim::after{opacity:1}
   display:flex;justify-content:space-between;align-items:baseline;
   margin-bottom:14px;gap:12px;
 }
-.gate-id{
-  font-family:var(--font-mono);
-  font-size:10px;letter-spacing:.14em;
-  color:var(--fg-4);
-}
+
 /* 每张卡底部的技术注脚 —— 这是"网络安全视觉语言"最省力的落点 */
 .gate-meta{
   margin:16px 0 0;padding-top:13px;
@@ -504,15 +475,7 @@ body.is-deep .scrim::after{opacity:1}
 .beat--diagram .path li{padding-left:34px}
 .beat--diagram .path li::before{left:19px}
 
-/* SIGNAL 期号 */
-.signal-stamp{
-  margin:30px 0 0;
-  font-family:var(--font-mono);
-  font-size:10.5px;letter-spacing:.2em;
-  color:var(--fg-4);
-}
-
-/* --- JOIN：全屏 CTA，带终端窗口 --- */
+/* SIGNAL 期号 *//* --- JOIN：全屏 CTA，带终端窗口 --- */
 .beat--cta{max-width:820px}
 
 /* 终端窗口：全站唯一一处 flag{}，克制地只出现在这里 */
@@ -640,21 +603,18 @@ body.is-deep .scrim::after{opacity:1}
   font-size:11px;letter-spacing:.12em;
   color:var(--accent);
 }
-.gate-id{
-  font-family:var(--font-mono);
-  font-size:10px;letter-spacing:.10em;
-  color:var(--fg-4);
-}
-/* 悬停时标题放大到 1.08 倍（就是 48 -> 58 那个感觉） */
+
+/* 悬停：向右位移为主，缩放只给一点点。
+   1.08 那种放大更像"网页交互演示"；translateX + 1.025 更克制。 */
 .gate-title{
   margin:0;
   font-size:clamp(26px,3.1vw,46px);
   font-weight:500;line-height:1.04;letter-spacing:-.03em;
   text-transform:uppercase;
-  transition:transform .45s var(--ease);
+  transition:transform .55s var(--ease);
   transform-origin:left center;
 }
-.gate:hover .gate-title{transform:scale(1.08)}
+.gate:hover .gate-title{transform:translateX(8px) scale(1.025)}
 .gate-sub{
   margin:0;
   font-family:var(--font-mono);
@@ -700,11 +660,12 @@ body.is-deep .scrim::after{opacity:1}
   z-index:1;
 }
 /* 球体是共用背景，会和铺满整宽的列表打架。
-   给列表垫一层局部压暗，保证右侧备注文字可读。 */
+   底衬压到很淡 —— 之前 .80/.52 在 #030506 的全局底上会变成"一块黑补丁"。
+   优先靠构图避让，而不是给每块内容垫黑布。 */
 .path::before{
   content:"";position:absolute;inset:-22px -46px;
   background:radial-gradient(ellipse 70% 100% at 50% 50%,
-    rgba(0,0,0,.80) 0%, rgba(0,0,0,.52) 62%, rgba(0,0,0,0) 100%);
+    rgba(3,5,6,.55) 0%, rgba(3,5,6,.24) 62%, rgba(3,5,6,0) 100%);
   z-index:-1;
 }
 .path li{
@@ -746,11 +707,15 @@ body.is-deep .scrim::after{opacity:1}
   position:relative;
   z-index:1;
 }
-.signal-list::before{
-  content:"";position:absolute;inset:-22px -40px;
-  background:radial-gradient(ellipse 72% 100% at 50% 50%,
-    rgba(0,0,0,.80) 0%, rgba(0,0,0,.50) 62%, rgba(0,0,0,0) 100%);
-  z-index:-1;
+/* SIGNAL 背景本来就是 radar 形态 —— 让雷达真正参与版式，
+   所以这一块完全不垫黑布，靠提亮文字与雷达自身的稀疏度来分开。 */
+.signal-list{
+  margin:34px 0 0;
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:10px 30px;
+  max-width:720px;
+  margin-left:auto;margin-right:auto;
+  text-align:left;
 }
 .signal-list li{
   position:relative;
@@ -811,13 +776,7 @@ body.is-deep .scrim::after{opacity:1}
 .modal-qr{
   display:flex;justify-content:center;
   gap:clamp(18px,3vw,40px);flex-wrap:wrap;
-}
-.qr-row{
-  margin:40px 0 0;
-  display:flex;justify-content:center;gap:clamp(18px,3vw,40px);
-  flex-wrap:wrap;
-}
-.qr{
+}.qr{
   margin:0;
   width:min(200px,40vw);
   display:flex;flex-direction:column;gap:12px;
@@ -841,7 +800,8 @@ body.is-deep .scrim::after{opacity:1}
 }
 
 /* ==========================================================================
-   鼠标遥测 HUD —— 偶尔浮现，不常驻
+   鼠标遥测 HUD —— 场景语言，不是全站装饰
+   只在 INDEX / FIELD / SIGNAL 出现（body.hud-on 由 JS 按屏切换）
    ========================================================================== */
 .hud{
   position:fixed;z-index:15;
@@ -851,9 +811,9 @@ body.is-deep .scrim::after{opacity:1}
   letter-spacing:.08em;color:var(--fg-3);
   pointer-events:none;
   opacity:0;
-  transition:opacity .7s var(--ease);
+  transition:opacity .7s var(--ease-soft);
 }
-.hud.is-on{opacity:1}
+body.hud-on .hud.is-on{opacity:.72}
 .hud-row{display:flex;gap:8px}
 .hud-k{width:34px;color:var(--fg-4)}
 .hud-v{color:var(--fg-2);font-variant-numeric:tabular-nums}
@@ -1020,12 +980,7 @@ body.is-deep .scrim::after{opacity:1}
   .display--sm{font-size:clamp(27px,7.4vw,44px)}
   .sub{letter-spacing:.2em}
 
-  /* 两列：单列会把整屏拉太高，留白难看 */
-  .facts{gap:22px 28px;flex-wrap:wrap}
-  .fact b{font-size:clamp(26px,7vw,34px)}
-  .fact span{font-size:10px;letter-spacing:.14em}
-
-  /* 职能卡与问题清单改单列 */
+  /* 两列：单列会把整屏拉太高，留白难看 */  /* 职能卡与问题清单改单列 */
   .gates{grid-template-columns:1fr}
   .signal-list{grid-template-columns:1fr;gap:8px}
 
@@ -1051,14 +1006,7 @@ body.is-deep .scrim::after{opacity:1}
 
   .hud{display:none}
 
-  .qr{width:min(240px,64vw)}
-  .qr-row{gap:22px}
-
-  .tracks li{grid-template-columns:40px 1fr;gap:12px;padding:13px 4px}
-  .t-desc{display:none}
-  .t-no{font-size:10px}
-
-  .body{font-size:14px;line-height:1.9}
+  .qr{width:min(240px,64vw)}  .body{font-size:14px;line-height:1.9}
   .pull{font-size:15px}
 
   .overlay-foot{position:static;margin-top:30px;flex-direction:column;align-items:flex-start;gap:8px}
@@ -1066,10 +1014,7 @@ body.is-deep .scrim::after{opacity:1}
 }
 
 @media (max-width:420px){
-  /* 保持两列，数据块不要竖直堆成一长条 */
-  .facts{gap:20px 18px}
-  .fact b{font-size:26px}
-  .display{font-size:clamp(30px,11.5vw,52px)}
+  /* 保持两列，数据块不要竖直堆成一长条 */  .display{font-size:clamp(30px,11.5vw,52px)}
 }
 
 /* 打印 */

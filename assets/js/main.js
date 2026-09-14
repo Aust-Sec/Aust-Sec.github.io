@@ -16,6 +16,22 @@
   var clamp = function (v, a, b) { return v < a ? a : v > b ? b : v; };
   var lerp = function (a, b, t) { return a + (b - a) * t; };
 
+  /* ----------------------------------------------------------------------
+     dt 归一化
+     ----------------------------------------------------------------------
+     所有"每帧固定比例"的插值/衰减都必须换算成按时间算，
+     否则 60Hz 和 80Hz 用户看到的运动速度不一样：
+       · 插值更快 / morph 更快 / 碎片更快 / 拖尾衰减更快
+     基准取 60fps（16.667ms）。
+     ---------------------------------------------------------------------- */
+  var BASE = 1000 / 60;
+  function dtAlpha(alpha60, dt) {
+    return 1 - Math.pow(1 - alpha60, dt / BASE);
+  }
+  function dtPow(factor60, dt) {
+    return Math.pow(factor60, dt / BASE);
+  }
+
   /* ======================================================================
      1. 逐字切分
      ====================================================================== */
@@ -130,16 +146,17 @@
       };
     }
 
-    /* ---------- 尺寸与场景变量 ---------- */
-    function readOrbVars() {
-      var cs = getComputedStyle(document.documentElement);
-      var v = function (n, d) { var x = parseFloat(cs.getPropertyValue(n)); return isNaN(x) ? d : x; };
-      orbT.x = v('--orb-x', 70);
-      orbT.y = v('--orb-y', 52);
-      orbT.r = v('--orb-r', 0.40);
-      orbT.o = v('--orb-o', 1);
+    /* ---------- 场景目标 ----------
+       单向数据流：
+         applyScene() → orbT（目标，只由分屏逻辑写）
+         applyOrb()   → orb（平滑值）→ 写回 --orb-x/--orb-y（只给光环用）
+       绝对不能让 orbT 反过来读 --orb-*，否则目标会被自己的平滑输出覆盖，
+       球会卡在原地看着不动（上一版就是这个自反馈 bug）。 */
+    function setOrbTarget(x, y, r, o) {
+      orbT.x = x; orbT.y = y; orbT.r = r; orbT.o = o;
     }
 
+    /* ---------- 尺寸 ---------- */
     function resize() {
       var dpr = Math.min(window.devicePixelRatio || 1, 2);
       W = window.innerWidth;
@@ -147,14 +164,14 @@
       cvs.width = Math.round(W * dpr);
       cvs.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      readOrbVars();
       applyOrb(true);
       ctx.fillStyle = '#030506';
       ctx.fillRect(0, 0, W, H);
     }
 
-    function applyOrb(instant) {
-      var t = instant ? 1 : 0.05;
+    function applyOrb(instant, dt) {
+      // 插值系数按 dt 换算 —— 固定 0.05 在不同刷新率下速度不同
+      var t = instant ? 1 : dtAlpha(0.055, dt);
       orb.x = lerp(orb.x, orbT.x, t);
       orb.y = lerp(orb.y, orbT.y, t);
       orb.r = lerp(orb.r, orbT.r, t);
@@ -165,22 +182,39 @@
       // 主体要大：允许超出屏幕，被裁切才显得有压迫感
       R = Math.min(W, H) * orb.r;
       if (W < 760) R = Math.min(R, H * 0.34);
+
+      // 光源跟随球：把平滑后的位置写回 CSS 变量。
+      // 不能在 CSS 里做 transition —— 渐变不可插值，transition 是无效的。
+      orbVarTick = (orbVarTick + 1) % 8;
+      if (orbVarTick === 0) {
+        var rs = document.documentElement.style;
+        rs.setProperty('--orb-x', orb.x.toFixed(2));
+        rs.setProperty('--orb-y', orb.y.toFixed(2));
+      }
     }
+    var orbVarTick = 0;
 
     function setMode(m) {
       mode = m;
+      // JOIN 用 gather：从上一屏的散开状态极缓慢地回收成完整 Core。
+      // 不是直接切 sphere —— 要看得见"前面的东西重新聚合了"。
       modeMixT = {
         scatter: m === 'scatter' ? 1 : 0,
         path: m === 'path' ? 1 : 0,
         radar: m === 'radar' ? 1 : 0
       };
+      gather = (m === 'gather');
     }
+    var gather = false;
 
     /* ---------- 投影 ---------- */
-    function project(t) {
-      modeMix.scatter = lerp(modeMix.scatter, modeMixT.scatter, 0.045);
-      modeMix.path = lerp(modeMix.path, modeMixT.path, 0.045);
-      modeMix.radar = lerp(modeMix.radar, modeMixT.radar, 0.045);
+    function project(t, dt) {
+      // JOIN 进入时把 morph 速度放慢 4 倍，聚合成完整 Core 要 2~2.5 秒
+      var morph = gather ? 0.0115 : 0.05;
+      var aMode = dtAlpha(morph, dt);
+      modeMix.scatter = lerp(modeMix.scatter, modeMixT.scatter, aMode);
+      modeMix.path = lerp(modeMix.path, modeMixT.path, aMode);
+      modeMix.radar = lerp(modeMix.radar, modeMixT.radar, aMode);
 
       var cosY = Math.cos(yaw), sinY = Math.sin(yaw);
       var cosX = Math.cos(pitch), sinX = Math.sin(pitch);
@@ -255,7 +289,15 @@
       }
     }
 
-    function drawCore(t) {
+    /* ---------- FIELD 联动：hover 模块 → 点亮一组节点 ----------
+       这是"UI 在控制数字空间"而不是"背景放了个 Canvas"的关键一步。
+       强度刻意压得很低：亮起来是"响应"，不能抢正文。 */
+    var pulseGroup = -1;      // -1 无；0..3 对应 CTF / SRC / SECURITY / SIGNAL
+    var pulseAmt = 0, pulseAmtT = 0;
+
+    function drawCore(t, dt) {
+      pulseAmt = lerp(pulseAmt, pulseAmtT, dtAlpha(0.09, dt || BASE));
+
       ctx.globalCompositeOperation = 'lighter';
       for (var i = 0; i < COUNT; i++) {
         var p = core[i];
@@ -263,21 +305,31 @@
         var size = (0.75 + p.scale * 0.95) * (0.6 + depthFade * 0.8);
         var alpha = 0.10 + depthFade * 0.44;
 
-        if (p.hot) {
-          // 只有稀有节点有辉光 —— 少数亮点才显贵
+        // 被 hover 命中的那一组：整组提亮 + 长出光晕
+        var inGroup = pulseGroup >= 0 && (i % 4) === pulseGroup;
+        var boost = inGroup ? pulseAmt : 0;
+
+        if (p.hot || boost > 0.02) {
           var pulse = 0.5 + 0.5 * Math.sin(t * 0.0012 + i);
-          var gr = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, 26 + pulse * 12);
-          gr.addColorStop(0, 'rgba(130,233,255,' + (0.34 + pulse * 0.22).toFixed(3) + ')');
-          gr.addColorStop(0.35, 'rgba(41,109,255,' + (0.13 + pulse * 0.08).toFixed(3) + ')');
+          var rad = 26 + pulse * 12 + boost * 10;
+          var gr = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, rad);
+          if (boost > 0.02) {
+            // 联动亮度远低于常驻亮点，避免整片"烧起来"
+            gr.addColorStop(0, 'rgba(130,233,255,' + (0.20 + pulse * 0.10 + boost * 0.20).toFixed(3) + ')');
+            gr.addColorStop(0.35, 'rgba(41,109,255,' + (0.08 + boost * 0.10).toFixed(3) + ')');
+          } else {
+            gr.addColorStop(0, 'rgba(130,233,255,' + (0.34 + pulse * 0.22).toFixed(3) + ')');
+            gr.addColorStop(0.35, 'rgba(41,109,255,' + (0.13 + pulse * 0.08).toFixed(3) + ')');
+          }
           gr.addColorStop(1, 'rgba(41,109,255,0)');
           ctx.fillStyle = gr;
           ctx.beginPath();
-          ctx.arc(p.sx, p.sy, 26 + pulse * 12, 0, Math.PI * 2);
+          ctx.arc(p.sx, p.sy, rad, 0, Math.PI * 2);
           ctx.fill();
-          ctx.fillStyle = 'rgba(200,245,255,0.88)';
-          size *= 1.5;
+          ctx.fillStyle = 'rgba(200,245,255,' + (0.88 * Math.min(1, alpha + boost * 0.5)).toFixed(3) + ')';
+          size *= 1.5 + boost * 0.35;
         } else {
-          ctx.fillStyle = 'rgba(242,244,245,' + alpha.toFixed(3) + ')';
+          ctx.fillStyle = 'rgba(242,244,245,' + (alpha + boost * 0.2).toFixed(3) + ')';
         }
         ctx.beginPath();
         ctx.arc(p.sx, p.sy, size, 0, Math.PI * 2);
@@ -286,10 +338,11 @@
       ctx.globalCompositeOperation = 'source-over';
     }
 
-    function drawFrag(px, py) {
+    function drawFrag(px, py, dt) {
+      var step = dt / BASE;
       for (var i = 0; i < FRAG_N; i++) {
         var f = frag[i];
-        f.x += f.v;
+        f.x += f.v * step;                  // 位移按时间算
         if (f.x > 1.3) frag[i] = spawnFrag(false);
         var x = (f.x * 0.5 + 0.5) * W + px * 0.5;       // 近乎前景，视差最大
         var y = (f.y * 0.5 + 0.5) * H + py * 0.5;
@@ -312,31 +365,33 @@
       last = now;
 
       var t = now;
-      applyOrb(false);
-      readOrbVars();
+      applyOrb(false, dt);          // 注意：主循环里不能调 readOrbVars()
+      // applyOrb 会把平滑后的 orb.x 写回 --orb-x，若这里再读回来当目标，
+      // 就形成自反馈：目标永远追不上自己，球会缓慢爬行且几乎不动。
 
       if (!reduceMotion) {
-        yaw += 0.00045 * dt;                // 恒速自转，和鼠标解耦
-        yaw += (yawTarget - yaw) * 0.012;   // 鼠标只偏置目标，不叠加到速度
-        pitch += (pitchTarget - pitch) * 0.02;
-        yawTarget *= 0.985;                 // 目标缓慢回中
-        pitchTarget += (-0.20 - pitchTarget) * 0.006;
+        yaw += 0.00045 * dt;                       // 已 dt 化
+        yaw += (yawTarget - yaw) * dtAlpha(0.014, dt);
+        pitch += (pitchTarget - pitch) * dtAlpha(0.022, dt);
+        yawTarget *= dtPow(0.985, dt);             // 衰减按时间换算
+        pitchTarget += (-0.20 - pitchTarget) * dtAlpha(0.007, dt);
       }
 
-      project(t);
+      project(t, dt);
 
-      // 拖尾：半透明底 + 极淡的环境光
+      // 拖尾：半透明底覆盖也按时间算，否则 80fps 衰减更快（更黑）
       ctx.globalCompositeOperation = 'source-over';
-      ctx.fillStyle = reduceMotion ? '#030506' : 'rgba(3,5,6,0.34)';
+      var fade = reduceMotion ? 1 : 1 - dtPow(1 - 0.34, dt);
+      ctx.fillStyle = 'rgba(3,5,6,' + (reduceMotion ? 1 : fade).toFixed(4) + ')';
       ctx.fillRect(0, 0, W, H);
 
       var px = (mouse.x - 0.5) * 2, py = (mouse.y - 0.5) * 2;
       drawDust(px, py);
       ctx.globalAlpha = orb.o;
       drawLinks(1);
-      drawCore(t);
+      drawCore(t, dt);
       ctx.globalAlpha = 1;
-      drawFrag(px, py);
+      drawFrag(px, py, dt);
     }
 
     /* ---------- 交互 ---------- */
@@ -367,7 +422,28 @@
     requestAnimationFrame(frame);
 
     // 暴露给分屏逻辑切换场景
-    window.__austOrb = { setMode: setMode, resize: resize };
+    window.__austOrb = {
+      setMode: setMode,
+      resize: resize,
+      /** 设置场景目标（单向：分屏逻辑 → 目标 → 平滑 → CSS 变量） */
+      setTarget: setOrbTarget,
+      /** 悬停 FIELD 模块时点亮对应的一组节点 */
+      pulse: function (group) {
+        pulseGroup = group;
+        pulseAmtT = group >= 0 ? 1 : 0;
+      },
+      /** 调试用：查看内部状态 */
+      debug: function () {
+        return {
+          orb: { x: orb.x, y: orb.y, r: orb.r, o: orb.o },
+          orbT: { x: orbT.x, y: orbT.y, r: orbT.r, o: orbT.o },
+          mode: mode, gather: gather,
+          cx: cx, cy: cy, R: R, W: W, H: H,
+          varInline: document.documentElement.style.getPropertyValue('--orb-x'),
+          varComputed: getComputedStyle(document.documentElement).getPropertyValue('--orb-x')
+        };
+      }
+    };
   }
 
   /* ======================================================================
@@ -384,8 +460,12 @@
     whatwedo: { x: 86, y: 50, r: 0.31, o: 0.58, mode: 'scatter' },
     start:    { x: 82, y: 50, r: 0.30, o: 0.56, mode: 'path'    },
     signal:   { x: 78, y: 50, r: 0.31, o: 0.66, mode: 'radar'   },
-    join:     { x: 54, y: 46, r: 0.33, o: 0.78, mode: 'sphere'  }
+    // JOIN：球回中 + gather —— 前面散开/压扁的东西重新聚合成完整 Core
+    join:     { x: 52, y: 47, r: 0.33, o: 0.82, mode: 'gather'  }
   };
+
+  // HUD 只在特定场景出现，让它成为"场景语言"而不是全站装饰
+  var HUD_SCENES = { top: 1, whatwedo: 1, signal: 1 };
 
   function initBeats() {
     var beats = Array.prototype.slice.call(document.querySelectorAll('.beat'));
@@ -411,10 +491,16 @@
 
     function applyScene(id) {
       var s = SCENES[id] || SCENES.top;
-      root.style.setProperty('--orb-x', String(s.x));
-      root.style.setProperty('--orb-y', String(s.y));
-      root.style.setProperty('--orb-r', String(s.r));
-      root.style.setProperty('--orb-o', String(s.o));
+      // 直接写目标值（单向），同时把初始值写进 CSS 变量让光环立刻对齐
+      if (window.__austOrb && window.__austOrb.setTarget) {
+        window.__austOrb.setTarget(s.x, s.y, s.r, s.o);
+      } else {
+        // 画布还未初始化时，先把值放进 CSS 变量，初始化时会被读到
+        root.style.setProperty('--orb-x', String(s.x));
+        root.style.setProperty('--orb-y', String(s.y));
+        root.style.setProperty('--orb-r', String(s.r));
+        root.style.setProperty('--orb-o', String(s.o));
+      }
       if (window.__austOrb) window.__austOrb.setMode(s.mode);
     }
 
@@ -460,6 +546,8 @@
       play(i);
 
       document.body.classList.toggle('is-deep', i > 0);
+      // HUD 属于场景语言：只在 INDEX / FIELD / SIGNAL 出现
+      document.body.classList.toggle('hud-on', !!HUD_SCENES[beats[i].id]);
 
       if (busy) return;
       busy = true;
@@ -501,6 +589,18 @@
         for (var k = 0; k < beats.length; k++) {
           if ('#' + beats[k].id === sel) { go(k); break; }
         }
+      });
+    });
+
+    /* ---- FIELD 模块 ↔ 背景联动 ----
+       hover 第 N 个模块 → 球上第 N 组节点亮起。
+       这一步让 UI 看起来在"控制"这个数字空间，而不是浮在背景上。 */
+    Array.prototype.slice.call(document.querySelectorAll('.gate')).forEach(function (gate, gi) {
+      gate.addEventListener('pointerenter', function () {
+        if (window.__austOrb) window.__austOrb.pulse(gi % 4);
+      });
+      gate.addEventListener('pointerleave', function () {
+        if (window.__austOrb) window.__austOrb.pulse(-1);
       });
     });
 
