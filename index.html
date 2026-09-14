@@ -62,83 +62,112 @@
   <div class="corner corner--br">
     <span>EST. 2026</span>
     <span class="sep" aria-hidden="true"></span>
-    <span>淮南 · 安徽理工大学</span>
+    <span>BUILDING FROM ZERO</span>
   </div>
 
-  <!-- ---------- 右侧进度刻度 ---------- -->
+  <!-- ---------- 右侧进度刻度：英文栏目名 + 中文小字 ---------- -->
   <nav class="rail" id="rail" aria-label="页面进度">
     <div class="rail-track"><div class="rail-progress" id="railProgress"></div></div>
     <ul class="rail-marks" id="railMarks">
-      <li><button class="mark is-active" data-target="#top"      aria-label="首页"><span class="mark-line"></span><span class="mark-copy">首页</span></button></li>
-      <li><button class="mark"           data-target="#about"    aria-label="关于"><span class="mark-line"></span><span class="mark-copy">关于</span></button></li>
-      <li><button class="mark"           data-target="#whatwedo" aria-label="做什么"><span class="mark-line"></span><span class="mark-copy">做什么</span></button></li>
-      <li><button class="mark"           data-target="#start"    aria-label="从零开始"><span class="mark-line"></span><span class="mark-copy">从零开始</span></button></li>
-      <li><button class="mark"           data-target="#signal"   aria-label="资源"><span class="mark-line"></span><span class="mark-copy">资源</span></button></li>
-      <li><button class="mark"           data-target="#join"     aria-label="加入"><span class="mark-line"></span><span class="mark-copy">加入</span></button></li>
+      <li><button class="mark is-active" data-target="#top"      aria-label="INDEX 首页"><span class="mark-line"></span><span class="mark-copy"><em>INDEX</em>首页</span></button></li>
+      <li><button class="mark"           data-target="#about"    aria-label="ABOUT 关于"><span class="mark-line"></span><span class="mark-copy"><em>ABOUT</em>关于</span></button></li>
+      <li><button class="mark"           data-target="#whatwedo" aria-label="FIELD 技术领域"><span class="mark-line"></span><span class="mark-copy"><em>FIELD</em>技术领域</span></button></li>
+      <li><button class="mark"           data-target="#start"    aria-label="START 从零开始"><span class="mark-line"></span><span class="mark-copy"><em>START</em>从零开始</span></button></li>
+      <li><button class="mark"           data-target="#signal"   aria-label="SIGNAL 资源"><span class="mark-line"></span><span class="mark-copy"><em>SIGNAL</em>资源情报</span></button></li>
+      <li><button class="mark"           data-target="#join"     aria-label="JOIN 加入"><span class="mark-line"></span><span class="mark-copy"><em>JOIN</em>加入我们</span></button></li>
     </ul>
   </nav>
 
   <!-- ---------- 中央舞台 ---------- -->
   <div class="center">
 
-    <!-- 00 / 首页 -->
+    <!-- 00 / INDEX -->
     <section class="beat is-active" id="top" data-index="1">
       <p class="kicker">安徽理工大学网络空间安全协会</p>
       <h1 class="display" data-kinetic>AUSTSEC</h1>
       <p class="tags" data-kinetic>CTF · SRC · SECURITY RESEARCH</p>
-      <p class="sub" data-kinetic>理解它，然后突破它。</p>
-      <p class="hint"><span class="hint-line" aria-hidden="true"></span>滚动或点击右侧刻度继续</p>
+      <p class="sub" data-kinetic>LEARN. BREAK. UNDERSTAND.</p>
+      <p class="hint" aria-hidden="true"><span class="hint-line"></span>SCROLL</p>
     </section>
 
-    <!-- 01 / 关于 -->
-    <section class="beat" id="about" data-index="2">
-      <p class="kicker">01 / 关于我们</p>
-      <h2 class="display display--sm" data-kinetic>NOT A CLUB.<br />A LAB.</h2>
-      <p class="body" data-kinetic>
-        这里不只是讨论网络安全。我们会一起刷题、复现漏洞、研究工具、
-        参加 CTF、接触 SRC，并分享那些很少有人主动告诉你的学习路径与资源。
-      </p>
-      <p class="pull" data-kinetic>我们希望减少网络安全学习中的信息差。</p>
-      <p class="stamp" data-kinetic>EST. 2026 · STARTING FROM ZERO</p>
+    <!-- 01 / ABOUT -->
+    <section class="beat beat--split" id="about" data-index="2">
+      <div class="split-head">
+        <p class="kicker">01 / ABOUT</p>
+        <h2 class="display display--sm" data-kinetic>A LAB<br />IN&nbsp;PROGRESS.</h2>
+      </div>
+      <div class="split-body">
+        <p class="body body--left" data-kinetic>
+          我们是一群对网络安全感兴趣的人。
+          CTF、SRC、漏洞复现、安全工具、攻防技术、开源项目……
+          从零开始，一起探索。
+        </p>
+        <p class="body body--left" data-kinetic>
+          我们不打算假装自己已经很成熟。
+          <b>第一批成员，将一起决定 AUSTSec 未来是什么样子。</b>
+        </p>
+        <p class="pull pull--left" data-kinetic>我们希望减少网络安全学习中的信息差。</p>
+        <dl class="meta">
+          <div><dt>STATUS</dt><dd class="is-live">BUILDING FROM ZERO</dd></div>
+          <div><dt>ESTABLISHED</dt><dd>2026</dd></div>
+          <div><dt>LOCATION</dt><dd>淮南 · 安徽理工大学</dd></div>
+        </dl>
+      </div>
     </section>
 
-    <!-- 02 / 做什么 -->
+    <!-- 02 / FIELD -->
     <section class="beat beat--wide" id="whatwedo" data-index="3">
-      <p class="kicker">02 / 我们做什么</p>
-      <h2 class="display display--sm" data-kinetic>WHAT WE DO</h2>
+      <p class="kicker">02 / FIELD</p>
+      <h2 class="display display--sm" data-kinetic>WHAT<br />WE DO.</h2>
       <div class="gates">
         <article class="gate">
-          <span class="gate-no">01</span>
+          <header class="gate-head">
+            <span class="gate-no">01</span>
+            <span class="gate-id">MODULE / CTF</span>
+          </header>
           <h3 class="gate-title">CTF</h3>
           <p class="gate-sub">以赛促学</p>
           <p class="gate-body">Web / Pwn / Reverse / Crypto / Misc。从基础题目开始，理解漏洞、程序与系统背后的原理。</p>
+          <p class="gate-meta">MODE: COMPETITION · ENTRY: ZERO</p>
         </article>
         <article class="gate">
-          <span class="gate-no">02</span>
+          <header class="gate-head">
+            <span class="gate-no">02</span>
+            <span class="gate-id">MODULE / SRC</span>
+          </header>
           <h3 class="gate-title">SRC</h3>
           <p class="gate-sub">漏洞挖掘</p>
           <p class="gate-body">资产发现、漏洞复现、报告撰写。在<b>合法授权</b>的前提下，了解真实的安全研究流程。</p>
+          <p class="gate-meta">SCOPE: AUTHORIZED ONLY</p>
         </article>
         <article class="gate">
-          <span class="gate-no">03</span>
+          <header class="gate-head">
+            <span class="gate-no">03</span>
+            <span class="gate-id">MODULE / SECURITY</span>
+          </header>
           <h3 class="gate-title">SECURITY</h3>
           <p class="gate-sub">技术研究</p>
           <p class="gate-body">Web 安全、渗透测试、逆向工程、二进制安全、安全开发，以及 AI × Security 等交叉方向。</p>
+          <p class="gate-meta">SCOPE: OPEN · DEPTH: UNKNOWN</p>
         </article>
         <article class="gate">
-          <span class="gate-no">04</span>
+          <header class="gate-head">
+            <span class="gate-no">04</span>
+            <span class="gate-id">MODULE / SIGNAL</span>
+          </header>
           <h3 class="gate-title">SIGNAL</h3>
           <p class="gate-sub">信息与资源</p>
           <p class="gate-body">比赛信息、学习路线、优质项目、安全社区、工具资源、行业动态。这一块是我们最想做成特色的。</p>
+          <p class="gate-meta">UPDATED: CONTINUOUSLY</p>
         </article>
       </div>
       <p class="legal" data-kinetic>所有漏洞挖掘与测试，仅在<b>合法授权</b>范围内进行。</p>
     </section>
 
-    <!-- 03 / 从零开始 -->
-    <section class="beat" id="start" data-index="4">
-      <p class="kicker">03 / 从零开始</p>
-      <h2 class="display display--sm" data-kinetic>START HERE</h2>
+    <!-- 03 / START -->
+    <section class="beat beat--diagram" id="start" data-index="4">
+      <p class="kicker">03 / START</p>
+      <h2 class="display display--sm" data-kinetic>START<br />FROM ZERO.</h2>
       <p class="body" data-kinetic>不知道从哪开始，是大部分人卡住的地方。我们把路径铺在这里。</p>
       <ol class="path">
         <li><span class="p-no">00</span><span class="p-name">完全零基础</span><span class="p-note">只要你好奇</span></li>
@@ -150,10 +179,10 @@
       </ol>
     </section>
 
-    <!-- 04 / 资源与信息 -->
+    <!-- 04 / SIGNAL -->
     <section class="beat beat--wide" id="signal" data-index="5">
       <p class="kicker">04 / SIGNAL</p>
-      <h2 class="display display--sm" data-kinetic>INFORMATION<br />IS ALSO A WEAPON.</h2>
+      <h2 class="display display--sm" data-kinetic>INFORMATION IS<br />ALSO A WEAPON.</h2>
       <p class="body" data-kinetic>
         网络安全最大的门槛，从来不只是技术，还有信息差。
         这些问题我们都会一起整理、一起更新。
@@ -167,15 +196,26 @@
         <li>现在大家在研究什么？</li>
       </ul>
       <p class="pull" data-kinetic>我们把这些信息聚在一起。</p>
+      <p class="signal-stamp">SIGNAL / 001 — 待发布</p>
     </section>
 
-    <!-- 05 / 加入 -->
-    <section class="beat beat--wide" id="join" data-index="6">
-      <p class="kicker">05 / 加入我们</p>
-      <h2 class="display display--sm" data-kinetic>ZERO<br />EXPERIENCE?<br />GOOD.</h2>
+    <!-- 05 / JOIN -->
+    <section class="beat beat--wide beat--cta" id="join" data-index="6">
+      <p class="kicker">05 / JOIN</p>
+      <h2 class="display display--sm" data-kinetic>NO EXPERIENCE<br />REQUIRED.</h2>
+
+      <!-- 全站唯一一处 flag{}：CTF 的仪式感，克制地只出现在这里 -->
+      <div class="term" data-kinetic>
+        <div class="term-bar"><span></span><span></span><span></span><em>flag.txt</em></div>
+        <div class="term-body">
+          <p class="term-line"><span class="t-p">visitor@austsec</span><span class="t-c">:</span><span class="t-d">~</span><span class="t-c">$</span> <span class="t-cmd">cat flag.txt</span></p>
+          <p class="term-line term-line--out"><span class="t-flag">flag{y0ur_j0urn3y_st4rts_h3r3}</span></p>
+        </div>
+      </div>
+
       <p class="body" data-kinetic>
-        不会 Linux？不会 C？不知道 CTF 是什么？都没关系。
-        你只需要对网络安全保持好奇。
+        不会 Linux？没写过 C？不知道 CTF 是什么？
+        <b>没关系。</b>我们希望找到的不是已经会的人，而是真正愿意学的人。
       </p>
 
       <div class="qr-row">
@@ -209,17 +249,18 @@
 <div class="overlay" id="overlay" hidden>
   <button class="overlay-close" id="overlayClose" aria-label="关闭目录">关闭</button>
   <nav class="overlay-nav">
-    <a href="#top"      data-target="#top"><span class="o-no">00</span>首页</a>
-    <a href="#about"    data-target="#about"><span class="o-no">01</span>关于我们</a>
-    <a href="#whatwedo" data-target="#whatwedo"><span class="o-no">02</span>我们做什么</a>
-    <a href="#start"    data-target="#start"><span class="o-no">03</span>从零开始</a>
-    <a href="#signal"   data-target="#signal"><span class="o-no">04</span>资源与信息</a>
-    <a href="#join"     data-target="#join"><span class="o-no">05</span>加入我们</a>
+    <a href="#top"      data-target="#top"><span class="o-no">00</span><em>INDEX</em>首页</a>
+    <a href="#about"    data-target="#about"><span class="o-no">01</span><em>ABOUT</em>关于我们</a>
+    <a href="#whatwedo" data-target="#whatwedo"><span class="o-no">02</span><em>FIELD</em>技术领域</a>
+    <a href="#start"    data-target="#start"><span class="o-no">03</span><em>START</em>从零开始</a>
+    <a href="#signal"   data-target="#signal"><span class="o-no">04</span><em>SIGNAL</em>资源情报</a>
+    <a href="#join"     data-target="#join"><span class="o-no">05</span><em>JOIN</em>加入我们</a>
   </nav>
   <div class="overlay-foot">
     <p class="motto">HACK THE LAB. NOT THE LAW.</p>
-    <p>本协会一切技术活动仅用于网络安全教育、研究与<b>授权</b>测试。</p>
-    <p>© <span id="year">2026</span> AUSTSec · 安徽理工大学网络空间安全协会</p>
+    <p>本协会一切技术活动仅用于网络安全学习、研究及<b>合法授权</b>测试。</p>
+    <p>AUSTSEC · EST. 2026 · 安徽理工大学网络空间安全协会</p>
+    <p>© <span id="year">2026</span> AUSTSec</p>
   </div>
 </div>
 
