@@ -175,12 +175,9 @@ body.is-deep .scrim::after{opacity:1}
 }
 
 /* ------------------------------ 按钮 ------------------------------------ */
-/* 描边药丸 + 文字双层：悬停时整体上移一行，实现"翻字"。
-   padding 必须放在 .btn 上，不能放在 .btn-text 上 ——
-   translateY(-50%) 是按含 padding 的盒子高算的，带上 padding 后
-   位移量会大于一行文字高度，悬停时第二行只露出一半。 */
+/* 描边药丸：文字固定为单行，避免中英文按钮出现重复的两层文案。 */
 .btn{
-  display:inline-block;
+  display:inline-flex;align-items:center;justify-content:center;
   padding:10px 22px;
   border:1px solid var(--fg);
   border-radius:50px;
@@ -191,12 +188,8 @@ body.is-deep .scrim::after{opacity:1}
              border-color .35s var(--ease-soft);
 }
 .btn-text{
-  display:block;
-  transition:transform .45s var(--ease);
+  display:block;line-height:1.5;white-space:nowrap;
 }
-.btn-text > span{display:block;line-height:1.5;white-space:nowrap}
-.btn:hover .btn-text,
-.btn:focus-visible .btn-text{transform:translateY(-50%)}
 
 .btn:hover{background:var(--fg);color:var(--bg)}
 .btn--solid{background:var(--fg);color:var(--bg)}
@@ -759,7 +752,7 @@ body.is-deep .scrim::after{opacity:1}
 
 .modal-head{
   display:flex;align-items:baseline;justify-content:space-between;
-  gap:16px;margin-bottom:26px;
+  gap:16px;margin-bottom:12px;
 }
 .modal-title{
   margin:0;
@@ -773,6 +766,15 @@ body.is-deep .scrim::after{opacity:1}
   transition:color .3s var(--ease-soft);
 }
 .modal-close:hover{color:var(--fg)}
+
+.modal-hint{
+  margin:0 0 22px;
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);
+  font-size:11px;line-height:1.6;letter-spacing:.05em;
+  color:var(--fg-2);
+}
+.modal-hint span{color:var(--accent);font-size:14px}
 
 .modal-qr{
   display:flex;justify-content:center;
