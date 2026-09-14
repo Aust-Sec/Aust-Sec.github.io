@@ -22,7 +22,7 @@
   --font-display: "PPNeueMontreal", "Inter", -apple-system, BlinkMacSystemFont,
                   "Segoe UI", "PingFang SC", "Hiragino Sans GB",
                   "Microsoft YaHei", "Source Han Sans SC", sans-serif;
-  --font-mono: "SFMono-Regular", "JetBrains Mono", Menlo, Consolas,
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas,
                "Liberation Mono", monospace;
 
   --pad: clamp(20px, 3.4vw, 52px);
@@ -99,8 +99,8 @@ ul{margin:0;padding:0;list-style:none}
 /* 内容页：文字更密，再叠一层局部压暗（不能用 opacity>1 放大渐变） */
 .scrim::after{
   content:"";position:absolute;left:0;top:0;right:0;bottom:0;
-  background:radial-gradient(ellipse 40% 40% at 50% 50%,
-    rgba(0,0,0,.55) 0%, rgba(0,0,0,.22) 58%, rgba(0,0,0,0) 100%);
+  background:radial-gradient(ellipse 46% 44% at 50% 50%,
+    rgba(0,0,0,.66) 0%, rgba(0,0,0,.30) 58%, rgba(0,0,0,0) 100%);
   opacity:0;
   transition:opacity .6s var(--ease);
 }
@@ -121,12 +121,15 @@ body.is-deep .scrim::after{opacity:1}
 .sep{width:14px;height:1px;background:var(--fg-4)}
 
 .brand{
+  display:flex;align-items:center;gap:10px;
   font-size:14px;font-weight:600;letter-spacing:.16em;
   text-transform:uppercase;
   transition:opacity .3s var(--ease);
 }
-.brand:hover{opacity:.65}
+.brand:hover{opacity:.7}
 .brand span{color:var(--accent)}
+/* 会徽直接贴深色底即可 —— logo.png 的白底已在构建期抠除 */
+.brand-mark{width:26px;height:26px;object-fit:contain;flex:none}
 
 /* 目录开关 */
 .index-toggle{
@@ -269,6 +272,46 @@ body.is-deep .scrim::after{opacity:1}
   color:var(--fg-2);
 }
 
+/* 首页关键词行：等宽字体 + 宽字距，比口号更有技术味 */
+.tags{
+  margin:26px 0 0;
+  font-family:var(--font-mono);
+  font-size:clamp(11px,1.05vw,13px);
+  letter-spacing:.26em;
+  text-transform:uppercase;
+  color:var(--accent);
+  opacity:.9;
+}
+
+/* 一句主张，用左侧竖线标出来 */
+.pull{
+  margin:34px auto 0;
+  max-width:34em;
+  padding-left:16px;
+  border-left:1px solid var(--accent);
+  text-align:left;
+  font-size:clamp(15px,1.5vw,19px);
+  line-height:1.7;
+  color:var(--fg);
+}
+
+/* 成立年份钢印 */
+.stamp{
+  margin:30px 0 0;
+  font-family:var(--font-mono);
+  font-size:11px;letter-spacing:.22em;
+  color:var(--fg-3);
+}
+
+/* 法律/合规提示 —— 用强调色，不要弱化 */
+.legal{
+  margin:34px auto 0;
+  max-width:40em;
+  font-size:12.5px;line-height:1.8;
+  color:var(--fg-2);
+}
+.legal b,.gate-body b{color:var(--accent);font-weight:600}
+
 .body{
   margin:26px auto 0;
   max-width:46ch;
@@ -323,33 +366,177 @@ body.is-deep .scrim::after{opacity:1}
   color:var(--fg-2);
 }
 
-/* 技术方向列表 */
-.tracks{
-  margin:40px auto 0;max-width:660px;
-  border-top:1px solid var(--line);
-}
-.tracks li{
-  display:grid;grid-template-columns:52px 1fr auto;
-  align-items:center;gap:18px;
-  padding:16px 4px;
-  border-bottom:1px solid var(--line);
-  transition:background .3s var(--ease),padding-left .3s var(--ease);
-}
-.tracks li:hover{background:rgba(239,239,239,.035);padding-left:12px}
-.t-no{
-  font-family:var(--font-mono);
-  font-size:11px;letter-spacing:.1em;color:var(--accent);
-}
-.t-name{font-size:15px;font-weight:500;text-align:left}
-.t-desc{
-  font-size:11.5px;letter-spacing:.04em;
-  color:var(--fg-3);text-align:right;
-}
-
 .actions{
   margin:40px 0 0;
   display:flex;justify-content:center;gap:14px;flex-wrap:wrap;
 }
+
+/* ==========================================================================
+   四块职能卡（CTF / SRC / SECURITY / SIGNAL）
+   ========================================================================== */
+.beat--wide{max-width:1060px}
+
+.gates{
+  margin:38px 0 0;
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:1px;
+  background:var(--line);          /* 1px 缝隙露出的就是分隔线 */
+  border:1px solid var(--line);
+  text-align:left;
+}
+.gate{
+  background:#000;
+  padding:clamp(20px,2.4vw,30px);
+  transition:background .3s var(--ease);
+}
+.gate:hover{background:rgba(239,239,239,.035)}
+.gate-no{
+  display:block;margin-bottom:12px;
+  font-family:var(--font-mono);
+  font-size:11px;letter-spacing:.14em;
+  color:var(--accent);
+}
+.gate-title{
+  margin:0;font-size:clamp(19px,2vw,26px);
+  font-weight:500;letter-spacing:.01em;line-height:1.1;
+  text-transform:uppercase;
+}
+.gate-sub{
+  margin:7px 0 0;
+  font-size:11.5px;font-weight:600;
+  letter-spacing:.2em;text-transform:uppercase;
+  color:var(--fg-3);
+}
+.gate-body{
+  margin:14px 0 0;
+  font-size:13.5px;line-height:1.85;
+  color:var(--fg-2);
+}
+
+/* ==========================================================================
+   零基础学习路径
+   ========================================================================== */
+.path{
+  margin:38px auto 0;
+  max-width:620px;
+  border-top:1px solid var(--line);
+  counter-reset:step;
+  position:relative;
+  z-index:1;
+}
+/* 球体是共用背景，会和铺满整宽的列表打架。
+   给列表垫一层局部压暗，保证右侧备注文字可读。 */
+.path::before{
+  content:"";position:absolute;inset:-22px -46px;
+  background:radial-gradient(ellipse 70% 100% at 50% 50%,
+    rgba(0,0,0,.80) 0%, rgba(0,0,0,.52) 62%, rgba(0,0,0,0) 100%);
+  z-index:-1;
+}
+.path li{
+  display:grid;grid-template-columns:44px 1fr auto;
+  align-items:center;gap:16px;
+  padding:14px 4px;
+  border-bottom:1px solid var(--line);
+  position:relative;
+  transition:background .3s var(--ease),padding-left .3s var(--ease);
+}
+.path li:hover{background:rgba(239,239,239,.035);padding-left:12px}
+/* 左侧竖线把步骤串成一条路径 */
+.path li::before{
+  content:"";position:absolute;left:19px;top:0;bottom:0;
+  width:1px;background:var(--line);
+}
+.path li.is-last::before{background:linear-gradient(180deg,var(--line),transparent)}
+.p-no{
+  font-family:var(--font-mono);font-size:11px;
+  color:var(--accent);letter-spacing:.1em;
+  background:#000;position:relative;z-index:1;
+  padding:2px 0;
+}
+.p-name{font-size:14.5px;font-weight:500;text-align:left}
+.p-note{
+  font-size:11.5px;color:var(--fg-3);text-align:right;
+}
+
+/* ==========================================================================
+   SIGNAL 问题清单
+   ========================================================================== */
+.signal-list{
+  margin:34px 0 0;
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:10px 30px;
+  max-width:720px;
+  margin-left:auto;margin-right:auto;
+  text-align:left;
+  position:relative;
+  z-index:1;
+}
+.signal-list::before{
+  content:"";position:absolute;inset:-22px -40px;
+  background:radial-gradient(ellipse 72% 100% at 50% 50%,
+    rgba(0,0,0,.80) 0%, rgba(0,0,0,.50) 62%, rgba(0,0,0,0) 100%);
+  z-index:-1;
+}
+.signal-list li{
+  position:relative;
+  padding-left:20px;
+  font-size:14px;line-height:1.8;
+  color:var(--fg-2);
+}
+.signal-list li::before{
+  content:"›";position:absolute;left:4px;top:0;
+  color:var(--accent);font-weight:600;
+}
+
+/* ==========================================================================
+   二维码
+   ========================================================================== */
+.qr-row{
+  margin:40px 0 0;
+  display:flex;justify-content:center;gap:clamp(18px,3vw,40px);
+  flex-wrap:wrap;
+}
+.qr{
+  margin:0;
+  width:min(200px,40vw);
+  display:flex;flex-direction:column;gap:12px;
+}
+/* 二维码本身是深色卡片，描边即可融入，不需要白底 */
+.qr img{
+  width:100%;height:auto;display:block;
+  border:1px solid var(--line);
+  background:#111;
+  transition:border-color .35s var(--ease),transform .35s var(--ease);
+}
+.qr:hover img{border-color:var(--accent);transform:translateY(-3px)}
+.qr figcaption{display:flex;flex-direction:column;gap:3px}
+.qr figcaption b{
+  font-size:12.5px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;
+}
+.qr figcaption span{
+  font-family:var(--font-mono);
+  font-size:11.5px;color:var(--fg-3);letter-spacing:.06em;
+}
+
+/* ==========================================================================
+   鼠标遥测 HUD —— 偶尔浮现，不常驻
+   ========================================================================== */
+.hud{
+  position:fixed;z-index:15;
+  left:var(--pad);bottom:calc(var(--pad) + 30px);
+  font-family:var(--font-mono);
+  font-size:10px;line-height:1.75;
+  letter-spacing:.08em;color:var(--fg-3);
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .7s var(--ease);
+}
+.hud.is-on{opacity:1}
+.hud-row{display:flex;gap:8px}
+.hud-k{width:34px;color:var(--fg-4)}
+.hud-v{color:var(--fg-2);font-variant-numeric:tabular-nums}
 
 /* 左下角 01/04 计数 */
 .counter{
@@ -407,6 +594,9 @@ body.is-deep .scrim::after{opacity:1}
   color:var(--fg-3);
 }
 .overlay-foot p{margin:0}
+.overlay-foot .motto{
+  color:var(--fg);letter-spacing:.2em;font-weight:600;
+}
 .overlay-foot a{transition:color .3s var(--ease)}
 .overlay-foot a:hover{color:var(--fg)}
 
@@ -485,14 +675,28 @@ body.is-deep .scrim::after{opacity:1}
   .fact b{font-size:clamp(26px,7vw,34px)}
   .fact span{font-size:10px;letter-spacing:.14em}
 
+  /* 职能卡与问题清单改单列 */
+  .gates{grid-template-columns:1fr}
+  .signal-list{grid-template-columns:1fr;gap:8px}
+
+  .path li{grid-template-columns:38px 1fr;gap:12px;padding:12px 4px}
+  .p-note{display:none}
+  .path li::before{left:16px}
+
+  .hud{display:none}
+
+  .qr{width:min(240px,64vw)}
+  .qr-row{gap:22px}
+
   .tracks li{grid-template-columns:40px 1fr;gap:12px;padding:13px 4px}
   .t-desc{display:none}
   .t-no{font-size:10px}
 
   .body{font-size:14px;line-height:1.9}
+  .pull{font-size:15px}
 
-  .overlay-foot{position:static;margin-top:34px;flex-direction:column;align-items:flex-start}
-  .overlay{justify-content:flex-start;padding-top:calc(var(--pad) + 44px)}
+  .overlay-foot{position:static;margin-top:30px;flex-direction:column;align-items:flex-start;gap:8px}
+  .overlay{justify-content:flex-start;padding-top:calc(var(--pad) + 44px);overflow-y:auto}
 }
 
 @media (max-width:420px){

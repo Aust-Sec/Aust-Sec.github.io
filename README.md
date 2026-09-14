@@ -1,6 +1,6 @@
 # AUSTSec 官网
 
-安徽理工大学网络安全协会官方站点。**纯静态、零依赖、零构建** —— 直接把仓库根目录发布到 GitHub Pages 即可。
+安徽理工大学网络空间安全协会官方站点。**纯静态、零依赖、零构建** —— 直接把仓库根目录发布到 GitHub Pages 即可。
 
 **线上地址：<https://austsec.github.io/>**
 
@@ -8,17 +8,38 @@
 
 ```
 .
-├── index.html              # 单页叙事站点（序幕 / 协会 / 方向 / 加入）
+├── index.html              # 单页叙事站点（6 屏）
 ├── .nojekyll               # 关键：告诉 GitHub Pages 不要跑 Jekyll 处理
 ├── deploy.ps1              # 一键部署脚本（init / commit / push）
 ├── assets/
 │   ├── css/style.css       # 全部样式，含设计变量与响应式
-│   └── js/main.js          # 粒子网络 + 逐字动效 + 分屏叙事 + 自绘光标
+│   ├── js/main.js          # 粒子网络 + 逐字动效 + 分屏叙事 + 自绘光标
+│   └── img/
+│       ├── logo.png        # 会徽（白底已在构建期抠除，512×514）
+│       ├── qq-open.png     # 公开交流群二维码
+│       └── qq-join.png     # 校内招新群二维码
 └── README.md
 ```
 
 `_analysis/` 是构建期的分析脚本与预览截图，**不是站点的一部分**，删掉不影响运行。
-其中 `preview/` 有几张效果截图可供参考。
+
+---
+
+## 〇、站点讲什么（内容定位）
+
+协会 **2026 年新成立**，所以站点**不写任何历史、人数、成绩**——没有的就不编。
+取而代之讲清楚三件事：
+
+1. **我们做什么** —— `CTF` / `SRC` / `SECURITY` / `SIGNAL` 四块，而不是只做一个 CTF 队。
+2. **零基础怎么进来** —— 一整屏 `START HERE` 学习路径，从「完全零基础」到「CTF · SRC · 项目」。
+3. **差异在哪** —— **减少信息差**。比赛信息、刷题平台、SRC 入门、工具资源、哪些路线已经过时，
+   这些「很少有人主动告诉你」的东西，是 SIGNAL 那一屏要解决的。
+
+> **EST. 2026. STARTING FROM ZERO.**
+> 没有历史包袱，没有固定路线。我们想和第一批成员一起定义 AUSTSec。
+
+合规声明在页面里用**强调色而非弱化色**，目录浮层底部保留
+`HACK THE LAB. NOT THE LAW.`，避免被误读成提供攻击服务。
 
 ---
 
@@ -120,15 +141,40 @@ austsec.example.edu.cn
 
 ---
 
-## 四、要改的地方（交付后请替换）
+## 四、内容维护
 
-| 位置 | 内容 | 说明 |
+**已经填好的（不需要再改）**：会徽、两个 QQ 群二维码及群号、成立年份、技术方向、学习路径。
+
+**以后可能想调的**：
+
+| 位置 | 现在 | 说明 |
 |---|---|---|
-| `index.html` 加入区 | `data-todo="填写报名表"` 的按钮 | 把 `href="#"` 换成真实问卷链接 |
-| 同上 | `data-todo="加入新生群"` 的按钮 | 换成群二维码页或 QQ 群链接 |
-| 目录浮层底部 | `https://github.com/` | 换成协会的 GitHub 组织地址 |
-| 数据 | `data-count="1200"` / `31` / `80` | 改数字即可，千分位自动处理 |
-| 目录浮层底部 | 「仅用于教学与研究」声明 | 建议保留，避免被误解为提供攻击服务 |
+| `index.html` 加入区 | 两个二维码 + 群号 | 换群时替换 `assets/img/qq-*.png`，并同步改 `figcaption` 里的群号和 `alt` 文本 |
+| `#whatwedo` 四块卡片 | CTF / SRC / SECURITY / SIGNAL | 加方向就在 `.gates` 里复制一个 `<article class="gate">` |
+| `#start` 学习路径 | 6 步 | 加/删 `<li>` 即可，左侧竖线是 CSS 画的，会自动延伸 |
+| `#signal` 问题清单 | 6 条 | 这是 SIGNAL 那一屏的核心，建议持续补充 |
+| 目录浮层 | `HACK THE LAB. NOT THE LAW.` | 建议保留，避免被误读成提供攻击服务 |
+
+> ⚠️ **不要编造历史、人数、获奖成绩。** 协会 2026 年新成立，
+> 「新」本身就是卖点。任何虚构数字都会在被追问时反噬可信度。
+
+### 页面结构（改内容前先看这个）
+
+站点是**分屏叙事**，不是传统滚动页面。每一屏是一个 `<section class="beat">`，
+滚轮 / 触摸 / 方向键 / 点击右侧刻度都能翻页。
+
+| 序号 | `id` | 标题 |
+|---|---|---|
+| 00 | `top` | `AUSTSEC` |
+| 01 | `about` | `NOT A CLUB. A LAB.` |
+| 02 | `whatwedo` | `WHAT WE DO` |
+| 03 | `start` | `START HERE` |
+| 04 | `signal` | `INFORMATION IS ALSO A WEAPON.` |
+| 05 | `join` | `ZERO EXPERIENCE? GOOD.` |
+
+**加一屏**：在 `.center` 里复制一个 `<section class="beat">`，
+再在 `.rail-marks` 里加一个 `<li><button class="mark" data-target="#新id">`。
+左下角 `01 / 06` 的总数是 JS 自动算的，不用手改。
 
 ---
 

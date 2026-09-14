@@ -155,9 +155,11 @@
           if (d2 > LINK_DIST * LINK_DIST) continue;
 
           // 越近越亮；越靠前越亮
-          alpha = (1 - Math.sqrt(d2) / LINK_DIST) * 0.16;
+          // 注意：数值压得比较低，因为球体是所有屏共用的背景，
+          // 文字铺满整宽的屏（如 START HERE）上它会直接压在正文上。
+          alpha = (1 - Math.sqrt(d2) / LINK_DIST) * 0.115;
           alpha *= (1 - (a.depth + b.depth) * 0.5 * 0.5);
-          if (alpha <= 0.010) continue;
+          if (alpha <= 0.008) continue;
 
           ctx.strokeStyle = 'rgba(239,239,239,' + alpha.toFixed(3) + ')';
           ctx.beginPath();
@@ -173,7 +175,7 @@
         var p = pts[i];
         var depthFade = 1 - (p.depth + 1) * 0.5;     // 近亮远暗
         var size = (0.7 + p.scale * 0.9) * (0.6 + depthFade * 0.8);
-        var alpha = 0.10 + depthFade * 0.42;
+        var alpha = 0.07 + depthFade * 0.30;
 
         // 少量节点做成青色并缓慢脉动，作为“数据源”
         if (i % 37 === 0) {
@@ -427,7 +429,7 @@
     });
 
     // 悬停到可交互元素上时放大
-    Array.prototype.slice.call(document.querySelectorAll('a,button,.tracks li')).forEach(function (n) {
+    Array.prototype.slice.call(document.querySelectorAll('a,button,.gate,.qr,.path li')).forEach(function (n) {
       n.addEventListener('pointerenter', function () { el.classList.add('is-hot'); });
       n.addEventListener('pointerleave', function () { el.classList.remove('is-hot'); });
     });
@@ -441,11 +443,60 @@
   }
 
   /* ======================================================================
-     6. 启动
+     6. 鼠标遥测 HUD
+     ----------------------------------------------------------------------
+     原站那种"数据感"的来源是**偶尔浮现**，不是常驻。
+     这里做成：鼠标移动时显示，停下 1.2s 后淡出，避免变成廉价的跑马灯。
+     ====================================================================== */
+  function initHud() {
+    var hud = document.getElementById('hud');
+    var elX = document.getElementById('hudX');
+    var elY = document.getElementById('hudY');
+    var elNode = document.getElementById('hudNode');
+    var elPing = document.getElementById('hudPing');
+    if (!hud || !elX) return;
+
+    // 触摸设备不显示（没有"悬停"概念）
+    if (!window.matchMedia || !window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+
+    var hideTimer = null, lastPing = 0;
+
+    function pad(n, w) { n = String(n); while (n.length < w) n = '0' + n; return n; }
+
+    window.addEventListener('pointermove', function (e) {
+      var x = Math.round(e.clientX), y = Math.round(e.clientY);
+
+      elX.textContent = pad(x, 4);
+      elY.textContent = pad(y, 4);
+      elNode.textContent = pad((x * 7 + y * 13) % 512, 3);
+
+      // ping 值不需要每个事件都算，每 400ms 更新一次即可
+      var now = Date.now();
+      if (now - lastPing > 400) {
+        lastPing = now;
+        elPing.textContent = (8 + Math.round(Math.random() * 18)) + 'ms';
+      }
+
+      hud.classList.add('is-on');
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(function () { hud.classList.remove('is-on'); }, 1200);
+    }, { passive: true });
+  }
+
+  /* ======================================================================
+     7. 启动
      ====================================================================== */
   function init() {
+    // 总屏数从 DOM 读，加/删 section 不用改 JS
+    var total = document.getElementById('beatTotal');
+    var beatsAll = document.querySelectorAll('.beat');
+    if (total && beatsAll.length) {
+      total.textContent = String(beatsAll.length).padStart(2, '0');
+    }
+
     initNetwork();
     initCursor();
+    initHud();
     initBeats();
 
     var y = document.getElementById('year');
