@@ -50,6 +50,6 @@ AustSec 成立于 2026 年，是由安徽理工大学网络安全爱好者共同
 
 我们会继续在这里记录协会动态、学习资源、比赛信息、题解和成员项目，让它逐渐成为 AustSec 对外展示与交流的窗口。
 
-网站设计：[Sun3-3](https://github.com/Sun3-3)  
+Designed by：[Sun3-3](https://github.com/Sun3-3)  
 成立年份：2026  
 © 2026 AustSec
