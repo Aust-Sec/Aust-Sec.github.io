@@ -4,7 +4,7 @@
 
 > 本站由协会学生成员自主设计、建设与维护，用于介绍 AustSec、分享网络安全学习方向并发布招新信息。本站不是安徽理工大学官方站点。
 
-访问网站：[https://austsec.github.io/](https://austsec.github.io/)
+访问网站：[https://aust-sec.github.io/](https://aust-sec.github.io/)
 
 ## 关于 AustSec
 
@@ -42,7 +42,7 @@ AustSec 成立于 2026 年，是由安徽理工大学网络安全爱好者共同
 
 二维码和一键跳转入口请访问网站的 `JOIN` 页面：
 
-[前往 AustSec 招新页面](https://austsec.github.io/#join)
+[前往 AustSec 招新页面](https://aust-sec.github.io/#join)
 
 ## 关于本站
 

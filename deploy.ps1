@@ -16,7 +16,7 @@ $ErrorActionPreference = "Stop"
 $git = "C:\Program Files\Git\cmd\git.exe"
 if (-not (Test-Path $git)) { $git = "git" }
 
-$remote = "https://github.com/AustSec/AustSec.github.io.git"
+$remote = "https://github.com/Aust-Sec/Aust-Sec.github.io.git"
 $repo   = $PSScriptRoot
 
 Write-Host ""
@@ -95,7 +95,7 @@ try {
   Write-Host ""
   Write-Host "PUSH OK" -ForegroundColor Green
   Write-Host ""
-  Write-Host "Live in 1-2 minutes at:  https://austsec.github.io/" -ForegroundColor Cyan
+  Write-Host "Live in 1-2 minutes at:  https://aust-sec.github.io/" -ForegroundColor Cyan
   Write-Host "(repo name = <org>.github.io, so Pages is published at the domain root)"
   Write-Host ""
 }
