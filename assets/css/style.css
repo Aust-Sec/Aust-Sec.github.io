@@ -71,6 +71,25 @@ a{color:inherit;text-decoration:none}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 ul{margin:0;padding:0;list-style:none}
 
+/* 键盘用户可以跳过全屏动效，直接进入内容。 */
+.skip-link{
+  position:fixed;left:var(--pad);top:12px;z-index:200;
+  padding:8px 12px;border:1px solid var(--accent);
+  background:var(--bg);color:var(--accent);
+  font-family:var(--font-mono);font-size:11px;
+  transform:translateY(-160%);transition:transform .2s var(--ease);
+}
+.skip-link:focus{transform:none;outline:2px solid var(--fg);outline-offset:3px}
+.stage:focus{outline:none}
+
+.noscript-note{
+  position:fixed;inset:auto var(--pad) var(--pad);z-index:200;
+  max-width:620px;padding:14px 16px;
+  border:1px solid var(--line);background:rgba(3,5,6,.96);
+  color:var(--fg-2);font-size:14px;line-height:1.7;
+}
+.noscript-note a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+
 /* 桌面端隐藏系统光标，换成自绘（触摸设备保留） */
 @media (hover:hover) and (pointer:fine){
   body.has-custom-cursor,
